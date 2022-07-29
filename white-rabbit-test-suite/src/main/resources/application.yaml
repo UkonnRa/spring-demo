@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:h2:file:./white-rabbit;AUTO_SERVER=TRUE;CIPHER=AES
+    username: whiterabbit
+    password: whiterabbit test1234
+  jpa:
+    hibernate:
+      ddl-auto: create

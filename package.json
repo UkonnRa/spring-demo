@@ -1,0 +1,21 @@
+{
+  "packageManager": "yarn@3.2.2",
+  "engines": {
+    "yarn": ">=3",
+    "node": ">=18"
+  },
+  "private": true,
+  "devDependencies": {
+    "@commitlint/cli": "^17.0.3",
+    "@commitlint/config-conventional": "^17.0.3",
+    "commitizen": "^4.2.5",
+    "commitlint": "^17.0.3",
+    "cz-conventional-changelog": "^3.3.0",
+    "husky": "^8.0.1"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}

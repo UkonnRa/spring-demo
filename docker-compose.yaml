@@ -1,0 +1,9 @@
+version: '3.9'
+services:
+  white-rabbit-endpoint-graphql:
+    build: ./white-rabbit-endpoint-graphql
+    restart: always
+    ports:
+      - "14000:8080"
+    environment:
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
