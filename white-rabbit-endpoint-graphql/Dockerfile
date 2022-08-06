@@ -9,7 +9,8 @@
 #
 #RUN jdeps -cp 'BOOT-INF/lib/*' -recursive --multi-release 17 --ignore-missing-deps -q --print-module-deps app.jar > jdeps.info
 
-FROM openjdk:17-alpine AS builder
+# openjdk:17-alpine is very old
+FROM eclipse-temurin:17-alpine AS builder
 
 COPY build/libs/white-rabbit-endpoint-graphql.jar app.jar
 
