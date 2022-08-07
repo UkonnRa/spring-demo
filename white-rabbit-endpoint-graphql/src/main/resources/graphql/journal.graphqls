@@ -1,0 +1,77 @@
+type Journal {
+  id: ID!
+  version: NonNegativeInt!
+
+  name: String!
+  description: String!
+  tags: [String!]!
+  unit: String!
+  archived: Boolean!
+
+  admins: [AccessItem!]!
+  members: [AccessItem!]!
+
+  isAdmin: Boolean!
+  isWriteable: Boolean!
+}
+
+union AccessItem = User | Group
+
+enum AccessItemType {
+  USER
+  GROUP
+}
+
+type AccessItemValue {
+  itemType: AccessItemType!
+  id: ID!
+}
+
+type JournalValue {
+  id: ID!
+
+  name: String!
+  description: String!
+  tags: [String!]!
+  unit: String!
+  archived: Boolean!
+
+  admins: [AccessItemValue!]!
+  members: [AccessItemValue!]!
+}
+
+input AccessItemInput {
+  itemType: AccessItemType!
+  id: ID!
+}
+
+type JournalConnection {
+  pageInfo: PageInfo!
+  edges: [JournalEdge!]!
+}
+
+type JournalEdge {
+  node: Journal!
+  cursor: String!
+}
+
+input JournalCommandCreate {
+  targetId: ID
+  name: String!
+  description: String!
+  tags: [String!]!
+  unit: String!
+  admins: [AccessItemInput!]!
+  members: [AccessItemInput!]!
+}
+
+input JournalCommandUpdate {
+  targetId: ID!
+  name: String
+  description: String
+  tags: [String!]
+  unit: String
+  archived: Boolean
+  admins: [AccessItemInput!]
+  members: [AccessItemInput!]
+}

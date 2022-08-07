@@ -1,18 +1,105 @@
-scalar DateTime
-scalar Long
+scalar Date
+scalar JSON
+scalar NonNegativeInt
+scalar BigDecimal
 
 type PageInfo {
   hasPreviousPage: Boolean!
   hasNextPage: Boolean!
-  firstCursor: String
-  lastCursor: String
+  startCursor: String
+  endCursor: String
 }
 
 input Order {
-  direction: Direction!
   property: String!
+  direction: Direction!
 }
 
 enum Direction {
-  ASC, DESC
+  ASC
+  DESC
+}
+
+type Query {
+  user(query: String!): User
+  users(
+    query: String!
+    sort: [Order!]!
+    first: NonNegativeInt
+    after: String
+    last: NonNegativeInt
+    before: String
+    offset: NonNegativeInt
+  ): UserConnection!
+
+  group(query: String!): Group
+  groups(
+    query: String!
+    sort: [Order!]!
+    first: NonNegativeInt
+    after: String
+    last: NonNegativeInt
+    before: String
+    offset: NonNegativeInt
+  ): GroupConnection!
+
+  journal(query: String!): Journal
+  journals(
+    query: String!
+    sort: [Order!]!
+    first: NonNegativeInt
+    after: String
+    last: NonNegativeInt
+    before: String
+    offset: NonNegativeInt
+  ): JournalConnection!
+
+  account(query: String!): Journal
+  accounts(
+    query: String!
+    sort: [Order!]!
+    first: NonNegativeInt
+    after: String
+    last: NonNegativeInt
+    before: String
+    offset: NonNegativeInt
+  ): AccountConnection!
+
+  record(query: String!): Record
+  records(
+    query: String!
+    sort: [Order!]!
+    first: NonNegativeInt
+    after: String
+    last: NonNegativeInt
+    before: String
+    offset: NonNegativeInt
+  ): RecordConnection!
+}
+
+type Mutation {
+  createUser(command: UserCommandCreate!): User
+  updateUser(command: UserCommandUpdate!): User
+  deleteUser(targetId: ID!): Boolean
+  handleUserCommands(commands: [JSON!]!): [UserValue]
+
+  createGroup(command: GroupCommandCreate!): Group
+  updateGroup(command: GroupCommandUpdate!): Group
+  deleteGroup(targetId: ID!): Boolean
+  handleGroupCommands(commands: [JSON!]!): [GroupValue]
+
+  createJournal(command: JournalCommandCreate!): Journal
+  updateJournal(command: JournalCommandUpdate!): Journal
+  deleteJournal(targetId: ID!): Boolean
+  handleJournalCommands(commands: [JSON!]!): [JournalValue]
+
+  createAccount(command: AccountCommandCreate!): Account
+  updateAccount(command: AccountCommandUpdate!): Account
+  deleteAccount(targetId: ID!): Boolean
+  handleAccountCommands(commands: [JSON!]!): [AccountValue]
+
+  createRecord(command: RecordCommandCreate!): Record
+  updateRecord(command: RecordCommandUpdate!): Record
+  deleteRecord(targetId: ID!): Boolean
+  handleRecordCommands(commands: [JSON!]!): [RecordValue]
 }

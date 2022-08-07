@@ -1,0 +1,75 @@
+type Account {
+  id: ID!
+  version: NonNegativeInt!
+
+  journal: Journal!
+
+  name: String!
+  description: String!
+
+  type: AccountType!
+  strategy: AccountStrategy!
+  unit: String!
+  archived: Boolean!
+}
+
+enum AccountType {
+  INCOME
+  EXPENSE
+  ASSET
+  LIABILITY
+  EQUITY
+}
+
+enum AccountStrategy {
+  FIFO
+  AVERAGE
+}
+
+type AccountValue {
+  id: ID!
+
+  journal: ID!
+
+  name: String!
+  description: String!
+
+  type: AccountType!
+  strategy: AccountStrategy!
+  unit: String!
+  archived: Boolean!
+}
+
+type AccountConnection {
+  pageInfo: PageInfo!
+  edges: [AccountEdge!]!
+}
+
+type AccountEdge {
+  node: Account!
+  cursor: String!
+}
+
+input AccountCommandCreate {
+  targetId: ID
+
+  journal: ID!
+  name: String!
+  description: String!
+
+  accountType: AccountType!
+  strategy: AccountStrategy!
+  unit: String!
+}
+
+input AccountCommandUpdate {
+  targetId: ID!
+
+  name: String
+  description: String
+
+  accountType: AccountType
+  strategy: AccountStrategy
+  unit: String
+  archived: Boolean
+}

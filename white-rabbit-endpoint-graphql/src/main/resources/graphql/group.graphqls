@@ -1,0 +1,48 @@
+type Group {
+  id: ID!
+  version: NonNegativeInt!
+
+  name: String!
+  description: String!
+
+  admins: [User!]!
+  members: [User!]!
+
+  isWriteable: Boolean!
+}
+
+type GroupValue {
+  id: ID!
+
+  name: String!
+  description: String!
+
+  admins: [ID!]!
+  members: [ID!]!
+}
+
+type GroupConnection {
+  pageInfo: PageInfo!
+  edges: [GroupEdge!]!
+}
+
+type GroupEdge {
+  node: Group!
+  cursor: String!
+}
+
+input GroupCommandCreate {
+  targetId: ID
+  name: String!
+  description: String!
+  admins: [ID!]!
+  members: [ID!]!
+}
+
+input GroupCommandUpdate {
+  targetId: ID!
+  name: String
+  description: String
+  admins: [ID!]
+  members: [ID!]
+}

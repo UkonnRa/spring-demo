@@ -1,0 +1,85 @@
+type Record {
+  id: ID!
+  version: NonNegativeInt!
+
+  journal: Journal!
+  name: String!
+  description: String!
+
+  type: RecordType!
+  date: Date!
+  tags: [String!]!
+  items: [RecordItem!]!
+  isValid: Boolean!
+}
+
+enum RecordType {
+  RECORD
+  CHECK
+}
+
+type RecordItem {
+  account: Account!
+  amount: BigDecimal
+  price: BigDecimal
+}
+
+type RecordItemValue {
+  account: ID!
+  amount: BigDecimal
+  price: BigDecimal
+}
+
+type RecordValue {
+  id: ID!
+
+  journal: ID!
+  name: String!
+  description: String!
+
+  type: RecordType!
+  date: Date!
+  tags: [String!]!
+  items: [RecordItemValue!]!
+}
+
+type RecordConnection {
+  pageInfo: PageInfo!
+  edges: [RecordEdge!]!
+}
+
+type RecordEdge {
+  node: Record!
+  cursor: String!
+}
+
+input RecordItemInput {
+  account: ID!
+  amount: BigDecimal
+  price: BigDecimal
+}
+
+input RecordCommandCreate {
+  targetId: ID
+
+  journal: ID!
+  name: String!
+  description: String!
+
+  recordType: RecordType!
+  date: Date!
+  tags: [String!]!
+  items: [RecordItemInput!]!
+}
+
+input RecordCommandUpdate {
+  targetId: ID!
+
+  name: String
+  description: String
+
+  recordType: RecordType
+  date: Date
+  tags: [String!]
+  items: [RecordItemInput!]
+}

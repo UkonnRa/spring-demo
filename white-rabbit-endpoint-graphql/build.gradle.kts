@@ -13,5 +13,6 @@ dependencies {
 
   developmentOnly("org.springframework.boot:spring-boot-devtools")
 
+  testImplementation(project(":white-rabbit-test-suite"))
   testImplementation("org.springframework.graphql:spring-graphql-test")
 }

@@ -9,6 +9,7 @@ import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
@@ -43,7 +44,7 @@ public final class UserEntity extends AbstractEntity<UserEntity.Dto> {
   @Builder.Default
   private RoleValue role = RoleValue.USER;
 
-  @ElementCollection
+  @ElementCollection(fetch = FetchType.EAGER)
   @Column(nullable = false)
   @Builder.Default
   @Size(min = AUTH_ID_MIN_LENGTH, max = AUTH_ID_MAX_LENGTH)

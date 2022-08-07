@@ -1,0 +1,56 @@
+type User {
+  id: ID!
+  version: NonNegativeInt!
+
+  name: String!
+  role: Role!
+  authIds: [AuthId!]!
+}
+
+enum Role {
+  USER
+  ADMIN
+  OWNER
+}
+
+type AuthId {
+  provider: String!
+  tokenValue: String!
+}
+
+type UserValue {
+  id: ID!
+
+  name: String!
+  role: Role!
+  authIds: [AuthId!]!
+}
+
+type UserConnection {
+  pageInfo: PageInfo!
+  edges: [UserEdge!]!
+}
+
+type UserEdge {
+  node: User!
+  cursor: String!
+}
+
+input AuthIdInput {
+  provider: String!
+  tokenValue: String!
+}
+
+input UserCommandCreate {
+  targetId: ID
+  name: String!
+  role: Role
+  authIds: [AuthIdInput!]
+}
+
+input UserCommandUpdate {
+  targetId: ID!
+  name: String
+  role: Role
+  authIds: [AuthIdInput!]
+}

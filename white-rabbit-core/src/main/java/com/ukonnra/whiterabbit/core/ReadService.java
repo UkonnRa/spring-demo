@@ -93,19 +93,12 @@ public abstract class ReadService<E, Q extends Query> {
   @Transactional(readOnly = true)
   public Page<E> findPage(
       final AuthUser authUser, final Pagination pagination, Sort sort, final Q query) {
-    log.info("=== Start FindPage ===");
-    log.info("pagination: {}", pagination);
-    log.info("sort: {}", sort);
-    log.info("query: {}", query);
     final var filteredSort = this.filterSort(sort);
 
     final var before =
         Optional.ofNullable(pagination.before()).flatMap(this::findByCursor).orElse(null);
     final var after =
         Optional.ofNullable(pagination.after()).flatMap(this::findByCursor).orElse(null);
-
-    log.info("before: {}", before);
-    log.info("after: {}", after);
 
     final var reversed = before != null && after == null;
     final var normalizedSort = normalizeSort(filteredSort, reversed);
@@ -125,8 +118,6 @@ public abstract class ReadService<E, Q extends Query> {
 
     final var hasNext = (!reversed && exceeded) || (reversed && before != null);
     final var hasPrevious = (reversed && exceeded) || (!reversed && after != null);
-    log.info("hasNext: {}", hasNext);
-    log.info("hasPrevious: {}", hasPrevious);
 
     var pageItems =
         new ArrayList<>(
@@ -137,7 +128,7 @@ public abstract class ReadService<E, Q extends Query> {
     if (reversed) {
       Collections.reverse(pageItems);
     }
-    log.info("pageItems: {}", pageItems);
+
     return new Page<>(
         new Page.Info(
             hasPrevious,

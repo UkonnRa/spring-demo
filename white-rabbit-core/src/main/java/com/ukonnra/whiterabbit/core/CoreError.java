@@ -170,7 +170,8 @@ public abstract class CoreError extends RuntimeException {
     public RecordWithMultipleEmptyItems(final RecordEntity record, final Set<UUID> accountIds) {
       super(
           String.format(
-              "Field[amount] are empty in RecordItems[accounts=%s] in Record[%s], only at most ONE RecordItem can have the empty Field[amount]",
+              "Field[amount] are empty in RecordItems[accounts=%s] in Record[%s],"
+                  + " only at most ONE RecordItem can have the empty Field[amount]",
               accountIds, record.getId()));
       this.recordId = record.getId();
       this.accountIds = accountIds;

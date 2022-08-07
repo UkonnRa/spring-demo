@@ -99,7 +99,8 @@ public class DataGenerator {
   }
 
   public List<GroupEntity> generateGroups(final List<UserEntity> users, int size) {
-    return this.generateUnique(() -> FAKER.company().name(), size).stream()
+    return this.generateUnique(() -> FAKER.expression("GROUP-#{examplify 'GRP-123'}"), size)
+        .stream()
         .map(
             name -> {
               Collections.shuffle(users);
