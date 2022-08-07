@@ -31,7 +31,6 @@ public sealed interface RecordCommand extends Command<RecordCommand>
 
   record Update(
       @With String targetId,
-      @Nullable UUID journal,
       @Nullable String name,
       @Nullable String description,
       @Nullable RecordType recordType,

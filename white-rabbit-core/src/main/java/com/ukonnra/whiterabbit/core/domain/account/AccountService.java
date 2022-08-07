@@ -134,7 +134,7 @@ public class AccountService
   protected Optional<AccountEntity> doHandle(
       AuthUser authUser, AccountCommand command, @Nullable AccountEntity entity) {
     if (command instanceof AccountCommand.Create create) {
-      return Optional.of(this.create(create));
+      return Optional.of(this.create(authUser, create));
     } else if (command instanceof AccountCommand.Update update) {
       return Optional.of(this.update(update, entity));
     } else if (command instanceof AccountCommand.Delete delete) {
@@ -143,7 +143,7 @@ public class AccountService
     return Optional.empty();
   }
 
-  private AccountEntity create(final AccountCommand.Create command) {
+  private AccountEntity create(final AuthUser authUser, final AccountCommand.Create command) {
     final var builder = QAccountEntity.accountEntity;
     if (this.repository
         .findOne(builder.journal.id.eq(command.journal()).and(builder.name.eq(command.name())))
@@ -156,6 +156,7 @@ public class AccountService
             .findOne(command.journal())
             .orElseThrow(
                 () -> new CoreError.NotFound(JournalEntity.TYPE, command.journal().toString()));
+    this.journalService.checkWriteable(authUser, journal);
 
     return this.repository.save(
         new AccountEntity(

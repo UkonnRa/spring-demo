@@ -102,7 +102,7 @@ public class RecordEntity extends AbstractEntity<RecordEntity.Dto> {
             notMatchAccountIds.stream()
                 .map(id -> new CoreError.RecordUnitNotMatch(this, id))
                 .toList());
-    if (!emptyAccountIds.isEmpty()) {
+    if (emptyAccountIds.size() > 1) {
       errors.add(new CoreError.RecordWithMultipleEmptyItems(this, emptyAccountIds));
     }
 
@@ -117,7 +117,9 @@ public class RecordEntity extends AbstractEntity<RecordEntity.Dto> {
     for (final var item : items) {
       if (item.getAmount() == null) {
         emptyItems += 1;
+        continue;
       }
+
       final var value =
           Optional.ofNullable(item.getPrice())
               .map(price -> price.multiply(item.getAmount()))

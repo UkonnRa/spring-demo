@@ -1,5 +1,7 @@
 package com.ukonnra.whiterabbit.core;
 
+import com.ukonnra.whiterabbit.core.domain.account.AccountEntity;
+import com.ukonnra.whiterabbit.core.domain.journal.JournalEntity;
 import com.ukonnra.whiterabbit.core.domain.record.RecordEntity;
 import java.util.Set;
 import java.util.UUID;
@@ -168,8 +170,7 @@ public abstract class CoreError extends RuntimeException {
     public RecordWithMultipleEmptyItems(final RecordEntity record, final Set<UUID> accountIds) {
       super(
           String.format(
-              "RecordItem[account=%s] in Record[%s] needs to provide Field[price] since"
-                  + " the account's unit does not match the journal's",
+              "Field[amount] are empty in RecordItems[accounts=%s] in Record[%s], only at most ONE RecordItem can have the empty Field[amount]",
               accountIds, record.getId()));
       this.recordId = record.getId();
       this.accountIds = accountIds;
@@ -178,6 +179,24 @@ public abstract class CoreError extends RuntimeException {
     @Override
     public String getType() {
       return "RecordWithMultipleEmptyItems";
+    }
+  }
+
+  @Getter
+  public static class AccountNotInJournal extends CoreError {
+    private final UUID journalId;
+
+    private final UUID accountId;
+
+    public AccountNotInJournal(final JournalEntity journal, final AccountEntity account) {
+      super(String.format("Account[%s] does not in Journal[%s]", account.getId(), journal.getId()));
+      this.journalId = journal.getId();
+      this.accountId = account.getId();
+    }
+
+    @Override
+    public String getType() {
+      return "AccountNotInJournal";
     }
   }
 }
