@@ -5,12 +5,17 @@ import com.ukonnra.whiterabbit.core.query.Query;
 import com.ukonnra.whiterabbit.core.query.TextQuery;
 import java.util.List;
 import lombok.Builder;
+import lombok.With;
 import org.springframework.lang.Nullable;
 
 @Builder
 public record UserQuery(
-    @Nullable IdQuery id,
+    @With @Nullable IdQuery id,
     @Nullable TextQuery name,
     @Nullable RoleValue role,
     @Nullable List<String> authIdProviders)
-    implements Query {}
+    implements Query {
+  public UserQuery() {
+    this(null, null, null, null);
+  }
+}

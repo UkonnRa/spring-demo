@@ -5,8 +5,8 @@ type Group {
   name: String!
   description: String!
 
-  admins: [User!]!
-  members: [User!]!
+  admins(query: String, sort: [Order!], size: NonNegativeInt): [User!]!
+  members(query: String, sort: [Order!], size: NonNegativeInt): [User!]!
 
   isWriteable: Boolean!
 }
@@ -29,20 +29,4 @@ type GroupConnection {
 type GroupEdge {
   node: Group!
   cursor: String!
-}
-
-input GroupCommandCreate {
-  targetId: ID
-  name: String!
-  description: String!
-  admins: [ID!]!
-  members: [ID!]!
-}
-
-input GroupCommandUpdate {
-  targetId: ID!
-  name: String
-  description: String
-  admins: [ID!]
-  members: [ID!]
 }

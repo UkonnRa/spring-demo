@@ -49,27 +49,3 @@ type AccountEdge {
   node: Account!
   cursor: String!
 }
-
-input AccountCommandCreate {
-  targetId: ID
-
-  journal: ID!
-  name: String!
-  description: String!
-
-  accountType: AccountType!
-  strategy: AccountStrategy!
-  unit: String!
-}
-
-input AccountCommandUpdate {
-  targetId: ID!
-
-  name: String
-  description: String
-
-  accountType: AccountType
-  strategy: AccountStrategy
-  unit: String
-  archived: Boolean
-}

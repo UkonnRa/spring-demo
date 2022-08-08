@@ -78,28 +78,28 @@ type Query {
 }
 
 type Mutation {
-  createUser(command: UserCommandCreate!): User
-  updateUser(command: UserCommandUpdate!): User
+  createUser(targetId: ID, name: String!, role: Role, authIds: [AuthIdInput!]): User
+  updateUser(targetId: ID!, name: String, role: Role, authIds: [AuthIdInput!]): User
   deleteUser(targetId: ID!): Boolean
   handleUserCommands(commands: [JSON!]!): [UserValue]
 
-  createGroup(command: GroupCommandCreate!): Group
-  updateGroup(command: GroupCommandUpdate!): Group
+  createGroup(targetId: ID, name: String!, description: String!, admins: [ID!]!, members: [ID!]!): Group
+  updateGroup(targetId: ID!, name: String, description: String, admins: [ID!], members: [ID!]): Group
   deleteGroup(targetId: ID!): Boolean
   handleGroupCommands(commands: [JSON!]!): [GroupValue]
 
-  createJournal(command: JournalCommandCreate!): Journal
-  updateJournal(command: JournalCommandUpdate!): Journal
+  createJournal(targetId: ID, name: String!, description: String!, tags: [String!]!, unit: String!, admins: [AccessItemInput!]!, members: [AccessItemInput!]!): Journal
+  updateJournal(targetId: ID!, name: String, description: String, tags: [String!], unit: String, archived: Boolean, admins: [AccessItemInput!], members: [AccessItemInput!]): Journal
   deleteJournal(targetId: ID!): Boolean
   handleJournalCommands(commands: [JSON!]!): [JournalValue]
 
-  createAccount(command: AccountCommandCreate!): Account
-  updateAccount(command: AccountCommandUpdate!): Account
+  createAccount(targetId: ID, journal: ID!, name: String!, description: String!, accountType: AccountType!, strategy: AccountStrategy!, unit: String!): Account
+  updateAccount(targetId: ID!, name: String, description: String, accountType: AccountType, strategy: AccountStrategy, unit: String, archived: Boolean): Account
   deleteAccount(targetId: ID!): Boolean
   handleAccountCommands(commands: [JSON!]!): [AccountValue]
 
-  createRecord(command: RecordCommandCreate!): Record
-  updateRecord(command: RecordCommandUpdate!): Record
+  createRecord(targetId: ID, journal: ID!, name: String!, description: String!, recordType: RecordType!, date: Date!, tags: [String!]!, items: [RecordItemInput!]!): Record
+  updateRecord(targetId: ID!, name: String, description: String, recordType: RecordType, date: Date, tags: [String!], items: [RecordItemInput!]): Record
   deleteRecord(targetId: ID!): Boolean
   handleRecordCommands(commands: [JSON!]!): [RecordValue]
 }

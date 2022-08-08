@@ -153,22 +153,19 @@ public class GroupService
   }
 
   private GroupEntity create(final AuthUser authUser, final GroupCommand.Create command) {
-    if (Optional.ofNullable(authUser.user())
-        .map(user -> !command.admins().contains(user.getId()))
-        .orElse(false)) {
-      throw CoreError.NoPermission.write(entityType(), command.targetId());
-    }
-
     if (this.repository.findOne(QGroupEntity.groupEntity.name.eq(command.name())).isPresent()) {
       throw new CoreError.AlreadyExist(entityType(), "name", command.name());
     }
+
+    final var adminIds = new HashSet<>(command.admins());
+    Optional.ofNullable(authUser.user()).ifPresent(user -> adminIds.add(user.getId()));
 
     final var admins =
         this.userService.findAll(
             authUser,
             Sort.unsorted(),
             command.admins().size(),
-            UserQuery.builder().id(new IdQuery.Multiple(command.admins())).build());
+            UserQuery.builder().id(new IdQuery.Multiple(adminIds)).build());
     final var members =
         this.userService.findAll(
             authUser,

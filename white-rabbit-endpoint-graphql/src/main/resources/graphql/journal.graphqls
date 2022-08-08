@@ -54,24 +54,3 @@ type JournalEdge {
   node: Journal!
   cursor: String!
 }
-
-input JournalCommandCreate {
-  targetId: ID
-  name: String!
-  description: String!
-  tags: [String!]!
-  unit: String!
-  admins: [AccessItemInput!]!
-  members: [AccessItemInput!]!
-}
-
-input JournalCommandUpdate {
-  targetId: ID!
-  name: String
-  description: String
-  tags: [String!]
-  unit: String
-  archived: Boolean
-  admins: [AccessItemInput!]
-  members: [AccessItemInput!]
-}

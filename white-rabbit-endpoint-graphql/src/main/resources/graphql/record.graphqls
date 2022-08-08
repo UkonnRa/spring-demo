@@ -58,28 +58,3 @@ input RecordItemInput {
   amount: BigDecimal
   price: BigDecimal
 }
-
-input RecordCommandCreate {
-  targetId: ID
-
-  journal: ID!
-  name: String!
-  description: String!
-
-  recordType: RecordType!
-  date: Date!
-  tags: [String!]!
-  items: [RecordItemInput!]!
-}
-
-input RecordCommandUpdate {
-  targetId: ID!
-
-  name: String
-  description: String
-
-  recordType: RecordType
-  date: Date
-  tags: [String!]
-  items: [RecordItemInput!]
-}
