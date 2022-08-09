@@ -7,7 +7,6 @@ import com.ukonnra.whiterabbit.core.domain.user.UserCommand;
 import com.ukonnra.whiterabbit.core.domain.user.UserEntity;
 import com.ukonnra.whiterabbit.core.domain.user.UserQuery;
 import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
-import com.ukonnra.whiterabbit.core.domain.user.UserService;
 import com.ukonnra.whiterabbit.testsuite.task.Task;
 import com.ukonnra.whiterabbit.testsuite.task.TaskInput;
 import java.util.List;
@@ -106,8 +105,11 @@ public abstract class UserWriteTestSuite
   }
 
   protected UserWriteTestSuite(
-      DataGenerator dataGenerator, UserRepository userRepository, UserService service) {
-    super(dataGenerator, userRepository, service);
+      WriteTaskHandler<UserWriteTestSuite, UserEntity, UserCommand, UserQuery, UserEntity.Dto>
+          taskHandler,
+      DataGenerator dataGenerator,
+      UserRepository userRepository) {
+    super(taskHandler, dataGenerator, userRepository);
     this.repository = userRepository;
   }
 }

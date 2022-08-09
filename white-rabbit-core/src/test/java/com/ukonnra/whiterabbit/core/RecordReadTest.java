@@ -19,6 +19,6 @@ public class RecordReadTest extends RecordReadTestSuite {
       UserRepository userRepository,
       RecordRepository repository,
       RecordService service) {
-    super(dataGenerator, userRepository, repository, service);
+    super(new CoreReadTaskHandler<>(service), dataGenerator, userRepository, repository);
   }
 }

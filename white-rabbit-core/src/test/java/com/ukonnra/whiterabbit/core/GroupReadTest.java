@@ -19,6 +19,6 @@ public class GroupReadTest extends GroupReadTestSuite {
       UserRepository userRepository,
       GroupRepository repository,
       GroupService service) {
-    super(dataGenerator, userRepository, repository, service);
+    super(new CoreReadTaskHandler<>(service), dataGenerator, userRepository, repository);
   }
 }

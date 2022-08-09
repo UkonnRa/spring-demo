@@ -1,0 +1,10 @@
+mutation handleUserCommands($commands: [JSON!]!) {
+  handleUserCommands(commands: $commands) {
+    id
+    name
+    authIds {
+      provider
+      tokenValue
+    }
+  }
+}

@@ -15,6 +15,6 @@ public class UserReadTest extends UserReadTestSuite {
   @Autowired
   protected UserReadTest(
       DataGenerator dataGenerator, UserRepository userRepository, UserService service) {
-    super(dataGenerator, userRepository, service);
+    super(new CoreReadTaskHandler<>(service), dataGenerator, userRepository);
   }
 }

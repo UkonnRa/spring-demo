@@ -21,6 +21,11 @@ public class AccountWriteTest extends AccountWriteTestSuite {
       AccountRepository repository,
       AccountService service,
       JournalRepository journalRepository) {
-    super(dataGenerator, userRepository, repository, service, journalRepository);
+    super(
+        new CoreWriteTaskHandler<>(service),
+        dataGenerator,
+        userRepository,
+        repository,
+        journalRepository);
   }
 }

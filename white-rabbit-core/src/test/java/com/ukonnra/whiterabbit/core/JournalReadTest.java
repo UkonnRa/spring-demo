@@ -19,6 +19,6 @@ public class JournalReadTest extends JournalReadTestSuite {
       UserRepository userRepository,
       JournalRepository repository,
       JournalService service) {
-    super(dataGenerator, userRepository, repository, service);
+    super(new CoreReadTaskHandler<>(service), dataGenerator, userRepository, repository);
   }
 }

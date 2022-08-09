@@ -4,7 +4,6 @@ import com.ukonnra.whiterabbit.core.domain.journal.AccessItemValue;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalEntity;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalQuery;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalRepository;
-import com.ukonnra.whiterabbit.core.domain.journal.JournalService;
 import com.ukonnra.whiterabbit.core.domain.journal.QJournalEntity;
 import com.ukonnra.whiterabbit.core.domain.user.AuthIdValue;
 import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
@@ -85,11 +84,11 @@ public abstract class JournalReadTestSuite
   }
 
   protected JournalReadTestSuite(
+      ReadTaskHandler<JournalReadTestSuite, JournalEntity, JournalQuery> taskHandler,
       DataGenerator dataGenerator,
       UserRepository userRepository,
-      JournalRepository journalRepository,
-      JournalService service) {
-    super(dataGenerator, userRepository, service);
+      JournalRepository journalRepository) {
+    super(taskHandler, dataGenerator, userRepository);
     this.repository = journalRepository;
   }
 }

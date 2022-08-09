@@ -2,10 +2,8 @@ package com.ukonnra.whiterabbit.testsuite;
 
 import com.ukonnra.whiterabbit.core.AbstractEntity;
 import com.ukonnra.whiterabbit.core.Command;
-import com.ukonnra.whiterabbit.core.WriteService;
 import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
 import com.ukonnra.whiterabbit.core.query.Query;
-import com.ukonnra.whiterabbit.testsuite.task.CheckerInput;
 import com.ukonnra.whiterabbit.testsuite.task.Task;
 import com.ukonnra.whiterabbit.testsuite.task.TaskInput;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -20,30 +18,16 @@ public abstract class WriteTestSuite<
         D>
     extends TestSuite {
 
+  protected final WriteTaskHandler<S, E, C, Q, D> taskHandler;
   protected final DataGenerator dataGenerator;
-  protected final WriteService<E, C, Q, D> service;
 
   protected WriteTestSuite(
+      WriteTaskHandler<S, E, C, Q, D> taskHandler,
       DataGenerator dataGenerator,
-      UserRepository userRepository,
-      WriteService<E, C, Q, D> service) {
+      UserRepository userRepository) {
     super(userRepository);
+    this.taskHandler = taskHandler;
     this.dataGenerator = dataGenerator;
-    this.service = service;
-  }
-
-  private void handleTask(final Task.Write.HandleCommand<S, E, C> task) {
-    final var input = task.input().apply((S) this);
-    final var authUser = this.getAuthUser(input.authUser());
-    final var entity = this.service.handle(authUser, input.command());
-    task.checker().accept(new CheckerInput<>(input, entity));
-  }
-
-  private void handleTask(final Task.Write.HandleCommands<S, C, D> task) {
-    final var input = task.input().apply((S) this);
-    final var authUser = this.getAuthUser(input.authUser());
-    final var entities = this.service.handleAll(authUser, input.commands());
-    task.checker().accept(new CheckerInput<>(input, entities));
   }
 
   @Transactional
@@ -51,10 +35,6 @@ public abstract class WriteTestSuite<
   @MethodSource("generateTasks")
   public void runTasks(final Task.Write<S, TaskInput.Write, ?> task) {
     this.dataGenerator.prepareData();
-    if (task instanceof Task.Write.HandleCommand handleCommand) {
-      this.handleTask(handleCommand);
-    } else if (task instanceof Task.Write.HandleCommands handleCommands) {
-      this.handleTask(handleCommands);
-    }
+    this.taskHandler.handleTask((S) this, task);
   }
 }

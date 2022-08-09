@@ -5,7 +5,6 @@ import com.ukonnra.whiterabbit.core.domain.group.GroupCommand;
 import com.ukonnra.whiterabbit.core.domain.group.GroupEntity;
 import com.ukonnra.whiterabbit.core.domain.group.GroupQuery;
 import com.ukonnra.whiterabbit.core.domain.group.GroupRepository;
-import com.ukonnra.whiterabbit.core.domain.group.GroupService;
 import com.ukonnra.whiterabbit.core.domain.user.QUserEntity;
 import com.ukonnra.whiterabbit.core.domain.user.RoleValue;
 import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
@@ -154,11 +153,12 @@ public abstract class GroupWriteTestSuite
   }
 
   protected GroupWriteTestSuite(
+      WriteTaskHandler<GroupWriteTestSuite, GroupEntity, GroupCommand, GroupQuery, GroupEntity.Dto>
+          taskHandler,
       DataGenerator dataGenerator,
       UserRepository userRepository,
-      GroupRepository repository,
-      GroupService service) {
-    super(dataGenerator, userRepository, service);
+      GroupRepository repository) {
+    super(taskHandler, dataGenerator, userRepository);
     this.repository = repository;
   }
 }

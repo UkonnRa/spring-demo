@@ -5,7 +5,6 @@ import com.ukonnra.whiterabbit.core.domain.record.QRecordEntity;
 import com.ukonnra.whiterabbit.core.domain.record.RecordEntity;
 import com.ukonnra.whiterabbit.core.domain.record.RecordQuery;
 import com.ukonnra.whiterabbit.core.domain.record.RecordRepository;
-import com.ukonnra.whiterabbit.core.domain.record.RecordService;
 import com.ukonnra.whiterabbit.core.domain.user.AuthIdValue;
 import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
 import com.ukonnra.whiterabbit.core.query.IdQuery;
@@ -83,11 +82,11 @@ public abstract class RecordReadTestSuite
   }
 
   protected RecordReadTestSuite(
+      ReadTaskHandler<RecordReadTestSuite, RecordEntity, RecordQuery> taskHandler,
       DataGenerator dataGenerator,
       UserRepository userRepository,
-      RecordRepository recordRepository,
-      RecordService service) {
-    super(dataGenerator, userRepository, service);
+      RecordRepository recordRepository) {
+    super(taskHandler, dataGenerator, userRepository);
     this.repository = recordRepository;
   }
 }

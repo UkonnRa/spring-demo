@@ -4,7 +4,6 @@ import com.ukonnra.whiterabbit.core.domain.account.AccountCommand;
 import com.ukonnra.whiterabbit.core.domain.account.AccountEntity;
 import com.ukonnra.whiterabbit.core.domain.account.AccountQuery;
 import com.ukonnra.whiterabbit.core.domain.account.AccountRepository;
-import com.ukonnra.whiterabbit.core.domain.account.AccountService;
 import com.ukonnra.whiterabbit.core.domain.account.AccountStrategy;
 import com.ukonnra.whiterabbit.core.domain.account.AccountType;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalRepository;
@@ -145,12 +144,14 @@ public abstract class AccountWriteTestSuite
   }
 
   protected AccountWriteTestSuite(
+      WriteTaskHandler<
+              AccountWriteTestSuite, AccountEntity, AccountCommand, AccountQuery, AccountEntity.Dto>
+          taskHandler,
       DataGenerator dataGenerator,
       UserRepository userRepository,
       AccountRepository repository,
-      AccountService service,
       JournalRepository journalRepository) {
-    super(dataGenerator, userRepository, service);
+    super(taskHandler, dataGenerator, userRepository);
     this.repository = repository;
     this.journalRepository = journalRepository;
   }

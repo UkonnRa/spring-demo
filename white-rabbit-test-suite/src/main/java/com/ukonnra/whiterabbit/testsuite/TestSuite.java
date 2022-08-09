@@ -38,7 +38,7 @@ public abstract class TestSuite {
     this.userRepository = userRepository;
   }
 
-  protected AuthUser getAuthUser(final TaskInput.AuthUser input) {
+  public AuthUser getAuthUser(final TaskInput.AuthUser input) {
     final var user =
         Streamable.of(
                 this.userRepository.findAll(

@@ -6,7 +6,6 @@ import com.ukonnra.whiterabbit.core.domain.user.RoleValue;
 import com.ukonnra.whiterabbit.core.domain.user.UserEntity;
 import com.ukonnra.whiterabbit.core.domain.user.UserQuery;
 import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
-import com.ukonnra.whiterabbit.core.domain.user.UserService;
 import com.ukonnra.whiterabbit.core.query.IdQuery;
 import com.ukonnra.whiterabbit.core.query.Pagination;
 import com.ukonnra.whiterabbit.core.query.TextQuery;
@@ -94,8 +93,10 @@ public abstract class UserReadTestSuite
   }
 
   protected UserReadTestSuite(
-      DataGenerator dataGenerator, UserRepository userRepository, UserService service) {
-    super(dataGenerator, userRepository, service);
+      ReadTaskHandler<UserReadTestSuite, UserEntity, UserQuery> taskHandler,
+      DataGenerator dataGenerator,
+      UserRepository userRepository) {
+    super(taskHandler, dataGenerator, userRepository);
     this.repository = userRepository;
   }
 }

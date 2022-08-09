@@ -1,11 +1,4 @@
-query findUsers(
-  $query: String!,
-  $sort: [Order!]!,
-  $first: NonNegativeInt,
-  $after: String,
-  $last: NonNegativeInt,
-  $before: String,
-  $offset: NonNegativeInt) {
+query findUsers($query: String!, $sort: [Order!]!, $first: NonNegativeInt, $after: String, $last: NonNegativeInt, $before: String, $offset: NonNegativeInt) {
   users(query: $query, sort: $sort, first: $first, after: $after, last: $last, before: $before, offset: $offset) {
     pageInfo {
       hasPreviousPage

@@ -77,29 +77,33 @@ type Query {
   ): RecordConnection!
 }
 
+type EmptyResult {
+  _: Boolean
+}
+
 type Mutation {
   createUser(targetId: ID, name: String!, role: Role, authIds: [AuthIdInput!]): User
   updateUser(targetId: ID!, name: String, role: Role, authIds: [AuthIdInput!]): User
-  deleteUser(targetId: ID!): Boolean
-  handleUserCommands(commands: [JSON!]!): [UserValue]
+  deleteUser(targetId: ID!): EmptyResult
+  handleUserCommands(commands: [JSON!]!): [UserValue]!
 
   createGroup(targetId: ID, name: String!, description: String!, admins: [ID!]!, members: [ID!]!): Group
   updateGroup(targetId: ID!, name: String, description: String, admins: [ID!], members: [ID!]): Group
-  deleteGroup(targetId: ID!): Boolean
-  handleGroupCommands(commands: [JSON!]!): [GroupValue]
+  deleteGroup(targetId: ID!): EmptyResult
+  handleGroupCommands(commands: [JSON!]!): [GroupValue]!
 
   createJournal(targetId: ID, name: String!, description: String!, tags: [String!]!, unit: String!, admins: [AccessItemInput!]!, members: [AccessItemInput!]!): Journal
   updateJournal(targetId: ID!, name: String, description: String, tags: [String!], unit: String, archived: Boolean, admins: [AccessItemInput!], members: [AccessItemInput!]): Journal
-  deleteJournal(targetId: ID!): Boolean
-  handleJournalCommands(commands: [JSON!]!): [JournalValue]
+  deleteJournal(targetId: ID!): EmptyResult
+  handleJournalCommands(commands: [JSON!]!): [JournalValue]!
 
   createAccount(targetId: ID, journal: ID!, name: String!, description: String!, accountType: AccountType!, strategy: AccountStrategy!, unit: String!): Account
   updateAccount(targetId: ID!, name: String, description: String, accountType: AccountType, strategy: AccountStrategy, unit: String, archived: Boolean): Account
-  deleteAccount(targetId: ID!): Boolean
-  handleAccountCommands(commands: [JSON!]!): [AccountValue]
+  deleteAccount(targetId: ID!): EmptyResult
+  handleAccountCommands(commands: [JSON!]!): [AccountValue]!
 
   createRecord(targetId: ID, journal: ID!, name: String!, description: String!, recordType: RecordType!, date: Date!, tags: [String!]!, items: [RecordItemInput!]!): Record
   updateRecord(targetId: ID!, name: String, description: String, recordType: RecordType, date: Date, tags: [String!], items: [RecordItemInput!]): Record
-  deleteRecord(targetId: ID!): Boolean
-  handleRecordCommands(commands: [JSON!]!): [RecordValue]
+  deleteRecord(targetId: ID!): EmptyResult
+  handleRecordCommands(commands: [JSON!]!): [RecordValue]!
 }

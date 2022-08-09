@@ -3,7 +3,6 @@ package com.ukonnra.whiterabbit.testsuite;
 import com.ukonnra.whiterabbit.core.domain.group.GroupEntity;
 import com.ukonnra.whiterabbit.core.domain.group.GroupQuery;
 import com.ukonnra.whiterabbit.core.domain.group.GroupRepository;
-import com.ukonnra.whiterabbit.core.domain.group.GroupService;
 import com.ukonnra.whiterabbit.core.domain.group.QGroupEntity;
 import com.ukonnra.whiterabbit.core.domain.user.AuthIdValue;
 import com.ukonnra.whiterabbit.core.domain.user.RoleValue;
@@ -77,11 +76,11 @@ public abstract class GroupReadTestSuite
   }
 
   protected GroupReadTestSuite(
+      ReadTaskHandler<GroupReadTestSuite, GroupEntity, GroupQuery> taskHandler,
       DataGenerator dataGenerator,
       UserRepository userRepository,
-      GroupRepository groupRepository,
-      GroupService service) {
-    super(dataGenerator, userRepository, service);
+      GroupRepository groupRepository) {
+    super(taskHandler, dataGenerator, userRepository);
     this.repository = groupRepository;
   }
 }

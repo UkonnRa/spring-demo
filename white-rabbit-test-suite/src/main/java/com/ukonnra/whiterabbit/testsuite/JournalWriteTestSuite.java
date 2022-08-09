@@ -6,7 +6,6 @@ import com.ukonnra.whiterabbit.core.domain.journal.JournalCommand;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalEntity;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalQuery;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalRepository;
-import com.ukonnra.whiterabbit.core.domain.journal.JournalService;
 import com.ukonnra.whiterabbit.core.domain.user.QUserEntity;
 import com.ukonnra.whiterabbit.core.domain.user.RoleValue;
 import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
@@ -149,12 +148,14 @@ public abstract class JournalWriteTestSuite
   }
 
   protected JournalWriteTestSuite(
+      WriteTaskHandler<
+              JournalWriteTestSuite, JournalEntity, JournalCommand, JournalQuery, JournalEntity.Dto>
+          taskHandler,
       DataGenerator dataGenerator,
       UserRepository userRepository,
       JournalRepository repository,
-      JournalService service,
       GroupRepository groupRepository) {
-    super(dataGenerator, userRepository, service);
+    super(taskHandler, dataGenerator, userRepository);
     this.repository = repository;
     this.groupRepository = groupRepository;
   }

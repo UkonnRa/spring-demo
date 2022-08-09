@@ -21,6 +21,11 @@ public class AccountReadTest extends AccountReadTestSuite {
       AccountRepository repository,
       AccountService service,
       JournalRepository journalRepository) {
-    super(userRepository, dataGenerator, repository, service, journalRepository);
+    super(
+        new CoreReadTaskHandler<>(service),
+        userRepository,
+        dataGenerator,
+        repository,
+        journalRepository);
   }
 }

@@ -15,6 +15,6 @@ public class UserWriteTest extends UserWriteTestSuite {
   @Autowired
   protected UserWriteTest(
       DataGenerator dataGenerator, UserRepository userRepository, UserService service) {
-    super(dataGenerator, userRepository, service);
+    super(new CoreWriteTaskHandler<>(service), dataGenerator, userRepository);
   }
 }

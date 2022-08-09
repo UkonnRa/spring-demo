@@ -21,6 +21,11 @@ public class JournalWriteTest extends JournalWriteTestSuite {
       JournalRepository repository,
       JournalService service,
       GroupRepository groupRepository) {
-    super(dataGenerator, userRepository, repository, service, groupRepository);
+    super(
+        new CoreWriteTaskHandler<>(service),
+        dataGenerator,
+        userRepository,
+        repository,
+        groupRepository);
   }
 }

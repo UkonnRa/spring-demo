@@ -23,6 +23,12 @@ public class RecordWriteTest extends RecordWriteTestSuite {
       RecordService service,
       AccountRepository accountRepository,
       JournalRepository journalRepository) {
-    super(dataGenerator, userRepository, repository, service, accountRepository, journalRepository);
+    super(
+        new CoreWriteTaskHandler<>(service),
+        dataGenerator,
+        userRepository,
+        repository,
+        accountRepository,
+        journalRepository);
   }
 }

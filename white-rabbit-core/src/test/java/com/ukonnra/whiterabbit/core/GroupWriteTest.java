@@ -19,6 +19,6 @@ public class GroupWriteTest extends GroupWriteTestSuite {
       UserRepository userRepository,
       GroupRepository repository,
       GroupService service) {
-    super(dataGenerator, userRepository, repository, service);
+    super(new CoreWriteTaskHandler<>(service), dataGenerator, userRepository, repository);
   }
 }

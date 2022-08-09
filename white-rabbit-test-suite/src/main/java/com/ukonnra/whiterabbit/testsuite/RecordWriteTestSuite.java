@@ -10,7 +10,6 @@ import com.ukonnra.whiterabbit.core.domain.record.RecordEntity;
 import com.ukonnra.whiterabbit.core.domain.record.RecordItemValue;
 import com.ukonnra.whiterabbit.core.domain.record.RecordQuery;
 import com.ukonnra.whiterabbit.core.domain.record.RecordRepository;
-import com.ukonnra.whiterabbit.core.domain.record.RecordService;
 import com.ukonnra.whiterabbit.core.domain.record.RecordType;
 import com.ukonnra.whiterabbit.core.domain.user.QUserEntity;
 import com.ukonnra.whiterabbit.core.domain.user.RoleValue;
@@ -174,13 +173,15 @@ public abstract class RecordWriteTestSuite
   }
 
   protected RecordWriteTestSuite(
+      WriteTaskHandler<
+              RecordWriteTestSuite, RecordEntity, RecordCommand, RecordQuery, RecordEntity.Dto>
+          taskHandler,
       DataGenerator dataGenerator,
       UserRepository userRepository,
       RecordRepository repository,
-      RecordService service,
       AccountRepository accountRepository,
       JournalRepository journalRepository) {
-    super(dataGenerator, userRepository, service);
+    super(taskHandler, dataGenerator, userRepository);
     this.repository = repository;
     this.accountRepository = accountRepository;
     this.journalRepository = journalRepository;

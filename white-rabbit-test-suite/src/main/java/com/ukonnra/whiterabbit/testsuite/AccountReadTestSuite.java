@@ -3,7 +3,6 @@ package com.ukonnra.whiterabbit.testsuite;
 import com.ukonnra.whiterabbit.core.domain.account.AccountEntity;
 import com.ukonnra.whiterabbit.core.domain.account.AccountQuery;
 import com.ukonnra.whiterabbit.core.domain.account.AccountRepository;
-import com.ukonnra.whiterabbit.core.domain.account.AccountService;
 import com.ukonnra.whiterabbit.core.domain.account.QAccountEntity;
 import com.ukonnra.whiterabbit.core.domain.journal.AccessItemValue;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalRepository;
@@ -98,12 +97,12 @@ public abstract class AccountReadTestSuite
   }
 
   protected AccountReadTestSuite(
+      ReadTaskHandler<AccountReadTestSuite, AccountEntity, AccountQuery> taskHandler,
       UserRepository userRepository,
       DataGenerator dataGenerator,
       AccountRepository accountRepository,
-      AccountService service,
       JournalRepository journalRepository) {
-    super(dataGenerator, userRepository, service);
+    super(taskHandler, dataGenerator, userRepository);
     this.repository = accountRepository;
     this.journalRepository = journalRepository;
   }
