@@ -3,7 +3,9 @@ package com.ukonnra.whiterabbit.core.domain.user;
 import com.ukonnra.whiterabbit.core.query.IdQuery;
 import com.ukonnra.whiterabbit.core.query.Query;
 import com.ukonnra.whiterabbit.core.query.TextQuery;
+import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import lombok.Builder;
 import lombok.With;
 import org.springframework.lang.Nullable;
@@ -17,5 +19,9 @@ public record UserQuery(
     implements Query {
   public UserQuery() {
     this(null, null, null, null);
+  }
+
+  public UserQuery(final Collection<UUID> ids) {
+    this(IdQuery.of(ids).orElse(null), null, null, null);
   }
 }

@@ -4,7 +4,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.ukonnra.whiterabbit.core.CoreError;
 import com.ukonnra.whiterabbit.core.WriteService;
-import com.ukonnra.whiterabbit.core.auth.AuthUser;
 import com.ukonnra.whiterabbit.core.query.ExternalQuery;
 import com.ukonnra.whiterabbit.core.query.TextQuery;
 import java.util.ArrayList;
@@ -28,13 +27,9 @@ public class UserService extends WriteService<UserEntity, UserCommand, UserQuery
   protected UserService(UserRepository repository, UserFullTextQueryService fullTextQueryService) {
     super(
         repository,
+        repository,
         Map.of("name", new SortableField<>(QUserEntity.userEntity.name, UserEntity::getName)));
     this.fullTextQueryService = fullTextQueryService;
-  }
-
-  @Override
-  public String readScope() {
-    return READ_SCOPE;
   }
 
   @Override
@@ -48,7 +43,17 @@ public class UserService extends WriteService<UserEntity, UserCommand, UserQuery
   }
 
   @Override
-  protected Map.Entry<BooleanExpression, List<ExternalQuery>> parseQuery(UserQuery query) {
+  protected String readScope() {
+    return READ_SCOPE;
+  }
+
+  @Override
+  protected String writeScope() {
+    return WRITE_SCOPE;
+  }
+
+  @Override
+  public Map.Entry<BooleanExpression, List<ExternalQuery>> parseQuery(UserQuery query) {
     final var builder = QUserEntity.userEntity;
 
     final var expressions = new ArrayList<BooleanExpression>();
@@ -78,7 +83,7 @@ public class UserService extends WriteService<UserEntity, UserCommand, UserQuery
 
   @Override
   protected List<UserEntity> handleExternalQuery(
-      AuthUser authUser, List<UserEntity> entities, ExternalQuery query) {
+      final @Nullable UserEntity user, List<UserEntity> entities, ExternalQuery query) {
     if (query instanceof ExternalQuery.FullText fullText) {
       return this.fullTextQueryService.handle(entities, fullText);
     }
@@ -86,32 +91,27 @@ public class UserService extends WriteService<UserEntity, UserCommand, UserQuery
   }
 
   @Override
-  public String writeScope() {
-    return WRITE_SCOPE;
-  }
-
-  @Override
-  protected Optional<UserEntity> doHandle(
-      AuthUser authUser, UserCommand command, @Nullable UserEntity entity) {
+  public Optional<UserEntity> doHandle(
+      @Nullable UserEntity user, UserCommand command, @Nullable UserEntity entity) {
     var result = Optional.<UserEntity>empty();
     if (command instanceof UserCommand.Create create) {
-      result = Optional.of(this.create(authUser, create));
+      result = Optional.of(this.create(user, create));
     } else if (command instanceof UserCommand.Update update) {
-      result = Optional.of(this.update(authUser, update, entity));
+      result = Optional.of(this.update(user, update, entity));
     } else if (command instanceof UserCommand.Delete delete) {
-      this.delete(authUser, delete, entity);
+      this.delete(user, delete, entity);
     }
     return result;
   }
 
-  private static boolean isValidRole(AuthUser authUser, @Nullable RoleValue role) {
-    return Optional.ofNullable(authUser.user())
-        .map(user -> role != null && user.getRole().compareTo(role) > 0)
-        .orElse(role == RoleValue.USER);
+  private static boolean isInvalidRole(@Nullable UserEntity user, @Nullable RoleValue role) {
+    return Optional.ofNullable(user)
+        .map(u -> role == null || u.getRole().compareTo(role) <= 0)
+        .orElse(role != RoleValue.USER);
   }
 
-  private UserEntity create(AuthUser authUser, UserCommand.Create command) {
-    if (command.role() != null && !isValidRole(authUser, command.role())) {
+  private UserEntity create(@Nullable UserEntity user, UserCommand.Create command) {
+    if (command.role() != null && isInvalidRole(user, command.role())) {
       throw CoreError.NoPermission.write(entityType(), command.targetId());
     }
 
@@ -119,34 +119,33 @@ public class UserService extends WriteService<UserEntity, UserCommand, UserQuery
       throw new CoreError.AlreadyExist(entityType(), "name", command.name());
     }
 
-    final var user = new UserEntity();
-    user.setName(command.name());
-    Optional.ofNullable(command.role()).ifPresent(user::setRole);
-    Optional.ofNullable(command.authIds()).ifPresent(user::setAuthIds);
-    return this.repository.save(user);
+    final var entity = new UserEntity();
+    entity.setName(command.name());
+    Optional.ofNullable(command.role()).ifPresent(entity::setRole);
+    Optional.ofNullable(command.authIds()).ifPresent(entity::setAuthIds);
+    return this.repository.save(entity);
   }
 
   private UserEntity update(
-      AuthUser authUser, UserCommand.Update command, @Nullable UserEntity entity) {
+      @Nullable UserEntity user, UserCommand.Update command, @Nullable UserEntity entity) {
     if (entity == null) {
       throw new CoreError.NotFound(entityType(), command.targetId());
     }
 
-    if (!isValidRole(authUser, entity.getRole())) {
+    if (isInvalidRole(user, entity.getRole())) {
       throw CoreError.NoPermission.write(entityType(), entity.getId().toString());
     }
 
-    if (Optional.ofNullable(command.role())
-        .map(role -> !isValidRole(authUser, role))
-        .orElse(false)) {
+    if (Optional.ofNullable(command.role()).map(role -> isInvalidRole(user, role)).orElse(false)) {
       throw CoreError.NoPermission.write(entityType(), command.targetId());
     }
 
-    if (Optional.ofNullable(command.name())
-        .map(name -> this.repository.findOne(QUserEntity.userEntity.name.eq(name)).isPresent())
-        .orElse(false)) {
-      throw new CoreError.AlreadyExist(entityType(), "name", command.name());
-    }
+    Optional.ofNullable(command.name())
+        .flatMap(name -> this.repository.findOne(QUserEntity.userEntity.name.eq(name)))
+        .ifPresent(
+            e -> {
+              throw new CoreError.AlreadyExist(entityType(), "name", e.getName());
+            });
 
     if (command.name() == null && command.role() == null && command.authIds() == null) {
       return entity;
@@ -157,7 +156,7 @@ public class UserService extends WriteService<UserEntity, UserCommand, UserQuery
     Optional.ofNullable(command.authIds())
         .ifPresent(
             authIds -> {
-              if (!isValidRole(authUser, RoleValue.USER)) {
+              if (isInvalidRole(user, RoleValue.USER)) {
                 throw CoreError.NoPermission.write(entityType(), command.targetId());
               }
               entity.setAuthIds(new HashSet<>(authIds));
@@ -166,12 +165,13 @@ public class UserService extends WriteService<UserEntity, UserCommand, UserQuery
     return this.repository.save(entity);
   }
 
-  private void delete(AuthUser authUser, UserCommand.Delete command, @Nullable UserEntity entity) {
+  private void delete(
+      @Nullable UserEntity user, UserCommand.Delete command, @Nullable UserEntity entity) {
     if (entity == null) {
       throw new CoreError.NotFound(entityType(), command.targetId());
     }
 
-    if (!isValidRole(authUser, entity.getRole())) {
+    if (isInvalidRole(user, entity.getRole())) {
       throw CoreError.NoPermission.write(entityType(), entity.getId().toString());
     }
 

@@ -32,12 +32,15 @@ import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
+@Slf4j
 public class DataGenerator {
+  private static final String PROVIDER_AUTHING = "Authing";
   private static final Faker FAKER = new Faker();
   private static final Random RANDOM = new Random();
 
@@ -240,6 +243,7 @@ public class DataGenerator {
 
   @Transactional
   public void prepareData() {
+    log.info("Start preparing data");
     final var providers = new ArrayList<>(this.generateUnique(() -> FAKER.commerce().vendor(), 5));
     final var usernameStore = new HashSet<String>();
 
@@ -249,13 +253,44 @@ public class DataGenerator {
         this.generateUsers(usernameStore, RoleValue.ADMIN, providers, RANDOM.nextInt(5, 8));
     final var normals =
         this.generateUsers(usernameStore, RoleValue.USER, providers, RANDOM.nextInt(13, 21));
+    final var specificUsers =
+        List.of(
+            // TODO: the cleanup function after tests is not working
+            new UserEntity(
+                UUID.randomUUID().toString(),
+                RoleValue.USER,
+                Set.of(new AuthIdValue(PROVIDER_AUTHING, "62b9aa44030fd558ca2a13aa"))),
+            new UserEntity(
+                UUID.randomUUID().toString(),
+                RoleValue.ADMIN,
+                Set.of(new AuthIdValue(PROVIDER_AUTHING, "62b88497083e77d5faca3c29"))),
+            new UserEntity(
+                UUID.randomUUID().toString(),
+                RoleValue.OWNER,
+                Set.of(new AuthIdValue(PROVIDER_AUTHING, "62b7e12becdff87b52da3296"))),
+            new UserEntity(
+                UUID.randomUUID().toString(),
+                RoleValue.USER,
+                Set.of(new AuthIdValue(PROVIDER_AUTHING, "62b8642831d7c43e242820f3"))));
     final var users =
         this.userRepository.saveAll(
-            Stream.of(owners, admins, normals).flatMap(Collection::stream).toList());
+            Stream.of(owners, admins, normals, specificUsers).flatMap(Collection::stream).toList());
 
     final var groups = this.groupRepository.saveAll(this.generateGroups(users, 16));
     final var journals = this.journalRepository.saveAll(this.generateJournals(users, groups, 16));
     final var accounts = this.accountRepository.saveAll(this.generateAccounts(journals, 16));
     this.recordRepository.saveAll(this.generateRecords(journals, accounts, 16));
+    log.info("End preparing data");
+  }
+
+  @Transactional
+  public void clear() {
+    log.info("Start clearing data");
+    this.recordRepository.deleteAll();
+    this.accountRepository.deleteAll();
+    this.journalRepository.deleteAll();
+    this.accountRepository.deleteAll();
+    this.userRepository.deleteAll();
+    log.info("End clearing data");
   }
 }

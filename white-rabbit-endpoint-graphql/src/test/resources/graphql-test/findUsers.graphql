@@ -10,7 +10,9 @@ query findUsers($query: String!, $sort: [Order!]!, $first: NonNegativeInt, $afte
       cursor
       node {
         id
+        version
         name
+        role
         authIds {
           provider
           tokenValue

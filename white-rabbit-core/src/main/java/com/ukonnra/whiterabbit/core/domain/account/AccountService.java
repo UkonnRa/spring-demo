@@ -4,9 +4,11 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.ukonnra.whiterabbit.core.CoreError;
 import com.ukonnra.whiterabbit.core.WriteService;
-import com.ukonnra.whiterabbit.core.auth.AuthUser;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalEntity;
+import com.ukonnra.whiterabbit.core.domain.journal.JournalRepository;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalService;
+import com.ukonnra.whiterabbit.core.domain.user.UserEntity;
+import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
 import com.ukonnra.whiterabbit.core.query.ExternalQuery;
 import com.ukonnra.whiterabbit.core.query.TextQuery;
 import java.util.ArrayList;
@@ -26,13 +28,18 @@ public class AccountService
   public static final String WRITE_SCOPE = "white-rabbit_accounts:write";
 
   private final JournalService journalService;
+  private final JournalRepository journalRepository;
+
   private final AccountFullTextQueryService fullTextQueryService;
 
   protected AccountService(
+      UserRepository userRepository,
       AccountRepository repository,
       JournalService journalService,
+      JournalRepository journalRepository,
       AccountFullTextQueryService fullTextQueryService) {
     super(
+        userRepository,
         repository,
         Map.of(
             "name",
@@ -46,14 +53,10 @@ public class AccountService
             "journal.name",
             new SortableField<>(
                 QAccountEntity.accountEntity.journal.name,
-                (entity) -> entity.getJournal().getName())));
+                entity -> entity.getJournal().getName())));
     this.journalService = journalService;
+    this.journalRepository = journalRepository;
     this.fullTextQueryService = fullTextQueryService;
-  }
-
-  @Override
-  public String readScope() {
-    return READ_SCOPE;
   }
 
   @Override
@@ -67,20 +70,30 @@ public class AccountService
   }
 
   @Override
-  protected boolean doIsReadable(AuthUser authUser, AccountEntity entity) {
-    return this.journalService.isReadable(authUser, entity.getJournal());
+  protected boolean doIsReadable(final @Nullable UserEntity user, AccountEntity entity) {
+    return this.journalService.isReadable(user, entity.getJournal());
   }
 
   @Override
-  protected void doCheckWriteable(AuthUser authUser, AccountEntity entity) {
-    this.journalService.checkWriteable(authUser, entity.getJournal());
+  protected String writeScope() {
+    return WRITE_SCOPE;
+  }
+
+  @Override
+  protected String readScope() {
+    return READ_SCOPE;
+  }
+
+  @Override
+  protected void doCheckWriteable(final @Nullable UserEntity user, AccountEntity entity) {
+    this.journalService.checkWriteable(user, entity.getJournal());
     if (entity.isArchived()) {
       throw new CoreError.AlreadyArchived(entityType(), entity.getId());
     }
   }
 
   @Override
-  protected Map.Entry<BooleanExpression, List<ExternalQuery>> parseQuery(AccountQuery query) {
+  public Map.Entry<BooleanExpression, List<ExternalQuery>> parseQuery(AccountQuery query) {
     final var builder = QAccountEntity.accountEntity;
 
     final var expressions = new ArrayList<BooleanExpression>();
@@ -118,7 +131,7 @@ public class AccountService
 
   @Override
   protected List<AccountEntity> handleExternalQuery(
-      AuthUser authUser, List<AccountEntity> entities, ExternalQuery query) {
+      final @Nullable UserEntity user, List<AccountEntity> entities, ExternalQuery query) {
     if (query instanceof ExternalQuery.FullText fullText) {
       return this.fullTextQueryService.handle(entities, fullText);
     }
@@ -126,15 +139,10 @@ public class AccountService
   }
 
   @Override
-  public String writeScope() {
-    return WRITE_SCOPE;
-  }
-
-  @Override
-  protected Optional<AccountEntity> doHandle(
-      AuthUser authUser, AccountCommand command, @Nullable AccountEntity entity) {
+  public Optional<AccountEntity> doHandle(
+      final @Nullable UserEntity user, AccountCommand command, @Nullable AccountEntity entity) {
     if (command instanceof AccountCommand.Create create) {
-      return Optional.of(this.create(authUser, create));
+      return Optional.of(this.create(user, create));
     } else if (command instanceof AccountCommand.Update update) {
       return Optional.of(this.update(update, entity));
     } else if (command instanceof AccountCommand.Delete delete) {
@@ -143,7 +151,8 @@ public class AccountService
     return Optional.empty();
   }
 
-  private AccountEntity create(final AuthUser authUser, final AccountCommand.Create command) {
+  private AccountEntity create(
+      final @Nullable UserEntity user, final AccountCommand.Create command) {
     final var builder = QAccountEntity.accountEntity;
     if (this.repository
         .findOne(builder.journal.id.eq(command.journal()).and(builder.name.eq(command.name())))
@@ -152,11 +161,11 @@ public class AccountService
     }
 
     final var journal =
-        this.journalService
-            .findOne(command.journal())
+        this.journalRepository
+            .findById(command.journal())
             .orElseThrow(
                 () -> new CoreError.NotFound(JournalEntity.TYPE, command.journal().toString()));
-    this.journalService.checkWriteable(authUser, journal);
+    this.journalService.checkWriteable(user, journal);
 
     return this.repository.save(
         new AccountEntity(
@@ -175,12 +184,12 @@ public class AccountService
       throw new CoreError.NotFound(entityType(), command.targetId());
     }
 
-    if (Optional.ofNullable(command.name())
-        .map(
-            name -> this.repository.findOne(QAccountEntity.accountEntity.name.eq(name)).isPresent())
-        .orElse(false)) {
-      throw new CoreError.AlreadyExist(entityType(), "name", command.name());
-    }
+    Optional.ofNullable(command.name())
+        .flatMap(name -> this.repository.findOne(QAccountEntity.accountEntity.name.eq(name)))
+        .ifPresent(
+            e -> {
+              throw new CoreError.AlreadyExist(entityType(), "name", e.getName());
+            });
 
     if (command.name() == null
         && command.description() == null

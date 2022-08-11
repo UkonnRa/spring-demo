@@ -5,7 +5,8 @@ import com.ukonnra.whiterabbit.core.domain.journal.JournalEntity;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalQuery;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalRepository;
 import com.ukonnra.whiterabbit.core.domain.journal.QJournalEntity;
-import com.ukonnra.whiterabbit.core.domain.user.AuthIdValue;
+import com.ukonnra.whiterabbit.core.domain.user.QUserEntity;
+import com.ukonnra.whiterabbit.core.domain.user.RoleValue;
 import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
 import com.ukonnra.whiterabbit.core.query.IdQuery;
 import com.ukonnra.whiterabbit.core.query.Pagination;
@@ -68,14 +69,22 @@ public abstract class JournalReadTestSuite
             }),
         new Task.Read.FindPage<JournalReadTestSuite, JournalEntity, JournalQuery>(
             "Find by page",
-            (suite) ->
-                new TaskInput.Read.FindPage<>(
-                    TaskInput.AuthUser.builder()
-                        .authId(new AuthIdValue("provider 1", "value 1"))
-                        .build(),
-                    Pagination.DEFAULT,
-                    Sort.by(Sort.Order.desc("name")),
-                    JournalQuery.builder().includeArchived(true).build()),
+            (suite) -> {
+              final var user =
+                  suite
+                      .userRepository
+                      .findAll(QUserEntity.userEntity.role.eq(RoleValue.OWNER))
+                      .iterator()
+                      .next();
+
+              return new TaskInput.Read.FindPage<>(
+                  TaskInput.AuthUser.builder()
+                      .authId(user.getAuthIds().stream().findFirst().orElseThrow())
+                      .build(),
+                  Pagination.DEFAULT,
+                  Sort.by(Sort.Order.desc("name")),
+                  JournalQuery.builder().includeArchived(true).build());
+            },
             false,
             true,
             (input) ->

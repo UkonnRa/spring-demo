@@ -2,12 +2,15 @@ package com.ukonnra.whiterabbit.core.domain.record;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.ukonnra.whiterabbit.core.AbstractEntity;
 import com.ukonnra.whiterabbit.core.CoreError;
 import com.ukonnra.whiterabbit.core.WriteService;
-import com.ukonnra.whiterabbit.core.auth.AuthUser;
+import com.ukonnra.whiterabbit.core.domain.account.AccountRepository;
 import com.ukonnra.whiterabbit.core.domain.account.AccountService;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalEntity;
-import com.ukonnra.whiterabbit.core.domain.journal.JournalService;
+import com.ukonnra.whiterabbit.core.domain.journal.JournalRepository;
+import com.ukonnra.whiterabbit.core.domain.user.UserEntity;
+import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
 import com.ukonnra.whiterabbit.core.query.ExternalQuery;
 import com.ukonnra.whiterabbit.core.query.TextQuery;
 import java.util.ArrayList;
@@ -27,16 +30,20 @@ public class RecordService
   public static final String READ_SCOPE = "white-rabbit_records:read";
   public static final String WRITE_SCOPE = "white-rabbit_records:write";
 
-  private final JournalService journalService;
+  private final JournalRepository journalRepository;
   private final AccountService accountService;
+  private final AccountRepository accountRepository;
   private final RecordFullTextQueryService fullTextQueryService;
 
   protected RecordService(
+      UserRepository userRepository,
       RecordRepository repository,
-      JournalService journalService,
+      JournalRepository journalRepository,
       AccountService accountService,
+      AccountRepository accountRepository,
       RecordFullTextQueryService fullTextQueryService) {
     super(
+        userRepository,
         repository,
         Map.of(
             "name",
@@ -48,14 +55,10 @@ public class RecordService
             "journal.name",
             new SortableField<>(
                 QRecordEntity.recordEntity.journal.name, entity -> entity.getJournal().getName())));
-    this.journalService = journalService;
+    this.journalRepository = journalRepository;
     this.accountService = accountService;
+    this.accountRepository = accountRepository;
     this.fullTextQueryService = fullTextQueryService;
-  }
-
-  @Override
-  public String readScope() {
-    return READ_SCOPE;
   }
 
   @Override
@@ -69,20 +72,32 @@ public class RecordService
   }
 
   @Override
-  protected boolean doIsReadable(AuthUser authUser, RecordEntity entity) {
-    return entity.getItems().stream()
-        .allMatch(item -> this.accountService.isReadable(authUser, item.getAccount()));
+  protected String writeScope() {
+    return WRITE_SCOPE;
   }
 
   @Override
-  protected void doCheckWriteable(AuthUser authUser, RecordEntity entity) {
+  protected String readScope() {
+    return READ_SCOPE;
+  }
+
+  @Override
+  protected boolean doIsReadable(final @Nullable UserEntity user, RecordEntity entity) {
+    return entity.getItems().stream()
+        .allMatch(item -> this.accountService.isReadable(user, item.getAccount()));
+  }
+
+  @Override
+  protected void doCheckWriteable(@Nullable UserEntity user, RecordEntity entity) {
+    super.doCheckWriteable(user, entity);
+
     for (final var item : entity.getItems()) {
-      this.accountService.checkWriteable(authUser, item.getAccount());
+      this.accountService.checkWriteable(user, item.getAccount());
     }
   }
 
   @Override
-  protected Map.Entry<BooleanExpression, List<ExternalQuery>> parseQuery(RecordQuery query) {
+  public Map.Entry<BooleanExpression, List<ExternalQuery>> parseQuery(RecordQuery query) {
     final var builder = QRecordEntity.recordEntity;
 
     final var expressions = new ArrayList<BooleanExpression>();
@@ -129,7 +144,7 @@ public class RecordService
 
   @Override
   protected List<RecordEntity> handleExternalQuery(
-      AuthUser authUser, List<RecordEntity> entities, ExternalQuery query) {
+      final @Nullable UserEntity user, List<RecordEntity> entities, ExternalQuery query) {
     if (query instanceof ExternalQuery.FullText fullText) {
       return this.fullTextQueryService.handle(entities, fullText);
     }
@@ -137,17 +152,12 @@ public class RecordService
   }
 
   @Override
-  public String writeScope() {
-    return WRITE_SCOPE;
-  }
-
-  @Override
-  protected Optional<RecordEntity> doHandle(
-      AuthUser authUser, RecordCommand command, @Nullable RecordEntity entity) {
+  public Optional<RecordEntity> doHandle(
+      final @Nullable UserEntity user, RecordCommand command, @Nullable RecordEntity entity) {
     if (command instanceof RecordCommand.Create create) {
-      return Optional.of(this.create(authUser, create));
+      return Optional.of(this.create(user, create));
     } else if (command instanceof RecordCommand.Update update) {
-      return Optional.of(this.update(authUser, update, entity));
+      return Optional.of(this.update(user, update, entity));
     } else if (command instanceof RecordCommand.Delete delete) {
       this.delete(delete, entity);
     }
@@ -155,14 +165,19 @@ public class RecordService
   }
 
   private Set<RecordItemValue> loadValidItems(
-      final AuthUser authUser, final JournalEntity journal, final Set<RecordItemValue.Dto> items) {
+      final @Nullable UserEntity user,
+      final JournalEntity journal,
+      final Set<RecordItemValue.Dto> items) {
     final var accounts =
-        this.accountService.findAll(items.stream().map(RecordItemValue.Dto::account).toList());
+        this.accountRepository
+            .findAllById(items.stream().map(RecordItemValue.Dto::account).toList())
+            .stream()
+            .collect(Collectors.toMap(AbstractEntity::getId, e -> e));
     for (final var account : accounts.values()) {
       if (!account.getJournal().equals(journal)) {
         throw new CoreError.AccountNotInJournal(journal, account);
       }
-      this.accountService.checkWriteable(authUser, account);
+      this.accountService.checkWriteable(user, account);
     }
     return items.stream()
         .flatMap(
@@ -173,7 +188,7 @@ public class RecordService
         .collect(Collectors.toSet());
   }
 
-  private RecordEntity create(final AuthUser authUser, final RecordCommand.Create command) {
+  private RecordEntity create(final @Nullable UserEntity user, final RecordCommand.Create command) {
     final var builder = QRecordEntity.recordEntity;
     if (this.repository
         .findOne(builder.journal.id.eq(command.journal()).and(builder.name.eq(command.name())))
@@ -182,11 +197,11 @@ public class RecordService
     }
 
     final var journal =
-        this.journalService
-            .findOne(command.journal())
+        this.journalRepository
+            .findById(command.journal())
             .orElseThrow(
                 () -> new CoreError.NotFound(JournalEntity.TYPE, command.journal().toString()));
-    final var items = this.loadValidItems(authUser, journal, command.items());
+    final var items = this.loadValidItems(user, journal, command.items());
 
     final var record =
         new RecordEntity(
@@ -208,7 +223,7 @@ public class RecordService
   }
 
   private RecordEntity update(
-      final AuthUser authUser,
+      final @Nullable UserEntity user,
       final RecordCommand.Update command,
       @Nullable final RecordEntity entity) {
     if (entity == null) {
@@ -242,7 +257,7 @@ public class RecordService
     Optional.ofNullable(command.date()).ifPresent(entity::setDate);
     Optional.ofNullable(command.tags()).ifPresent(entity::setTags);
     Optional.ofNullable(command.items())
-        .map(items -> this.loadValidItems(authUser, entity.getJournal(), items))
+        .map(items -> this.loadValidItems(user, entity.getJournal(), items))
         .ifPresent(entity::setItems);
 
     return this.repository.save(entity);

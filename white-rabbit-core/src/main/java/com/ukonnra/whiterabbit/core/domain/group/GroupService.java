@@ -4,11 +4,11 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.ukonnra.whiterabbit.core.CoreError;
 import com.ukonnra.whiterabbit.core.WriteService;
-import com.ukonnra.whiterabbit.core.auth.AuthUser;
+import com.ukonnra.whiterabbit.core.domain.user.UserEntity;
 import com.ukonnra.whiterabbit.core.domain.user.UserQuery;
+import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
 import com.ukonnra.whiterabbit.core.domain.user.UserService;
 import com.ukonnra.whiterabbit.core.query.ExternalQuery;
-import com.ukonnra.whiterabbit.core.query.IdQuery;
 import com.ukonnra.whiterabbit.core.query.TextQuery;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,19 +34,16 @@ public class GroupService
   private final UserService userService;
 
   protected GroupService(
+      UserRepository userRepository,
       GroupRepository repository,
       GroupFullTextQueryService fullTextQueryService,
       UserService userService) {
     super(
+        userRepository,
         repository,
         Map.of("name", new SortableField<>(QGroupEntity.groupEntity.name, GroupEntity::getName)));
     this.fullTextQueryService = fullTextQueryService;
     this.userService = userService;
-  }
-
-  @Override
-  public String readScope() {
-    return READ_SCOPE;
   }
 
   @Override
@@ -60,7 +57,17 @@ public class GroupService
   }
 
   @Override
-  protected Map.Entry<BooleanExpression, List<ExternalQuery>> parseQuery(GroupQuery query) {
+  protected String writeScope() {
+    return WRITE_SCOPE;
+  }
+
+  @Override
+  protected String readScope() {
+    return READ_SCOPE;
+  }
+
+  @Override
+  public Map.Entry<BooleanExpression, List<ExternalQuery>> parseQuery(GroupQuery query) {
     final var builder = QGroupEntity.groupEntity;
 
     final var expressions = new ArrayList<BooleanExpression>();
@@ -96,7 +103,7 @@ public class GroupService
 
   @Override
   protected List<GroupEntity> handleExternalQuery(
-      AuthUser authUser, List<GroupEntity> entities, ExternalQuery query) {
+      final @Nullable UserEntity user, List<GroupEntity> entities, ExternalQuery query) {
     if (query instanceof ExternalQuery.FullText fullText) {
       return this.fullTextQueryService.handle(entities, fullText);
     } else if (query instanceof ExternalQuery.ContainingUser containingUser) {
@@ -109,10 +116,10 @@ public class GroupService
                           field -> {
                             if (field.equals("admins")) {
                               return entity.getAdmins().stream()
-                                  .anyMatch(user -> user.getId().equals(containingUser.userId()));
+                                  .anyMatch(u -> u.getId().equals(containingUser.userId()));
                             } else if (field.equals("members")) {
                               return entity.getMembers().stream()
-                                  .anyMatch(user -> user.getId().equals(containingUser.userId()));
+                                  .anyMatch(u -> u.getId().equals(containingUser.userId()));
                             }
                             return false;
                           }))
@@ -123,18 +130,13 @@ public class GroupService
   }
 
   @Override
-  public String writeScope() {
-    return WRITE_SCOPE;
-  }
-
-  @Override
-  protected Optional<GroupEntity> doHandle(
-      AuthUser authUser, GroupCommand command, @Nullable GroupEntity entity) {
+  public Optional<GroupEntity> doHandle(
+      final @Nullable UserEntity user, GroupCommand command, @Nullable GroupEntity entity) {
     var result = Optional.<GroupEntity>empty();
     if (command instanceof GroupCommand.Create create) {
-      result = Optional.of(this.create(authUser, create));
+      result = Optional.of(this.create(user, create));
     } else if (command instanceof GroupCommand.Update update) {
-      result = Optional.of(this.update(authUser, update, entity));
+      result = Optional.of(this.update(update, entity));
     } else if (command instanceof GroupCommand.Delete delete) {
       this.delete(delete, entity);
     }
@@ -142,36 +144,27 @@ public class GroupService
   }
 
   @Override
-  protected void doCheckWriteable(AuthUser authUser, GroupEntity entity) {
-    super.doCheckWriteable(authUser, entity);
+  protected void doCheckWriteable(final @Nullable UserEntity user, GroupEntity entity) {
+    super.doCheckWriteable(user, entity);
 
-    if (!Optional.ofNullable(authUser.user())
-        .map(user -> entity.getAdmins().contains(user))
-        .orElse(false)) {
+    if (!Optional.ofNullable(user).map(u -> entity.getAdmins().contains(u)).orElse(false)) {
       throw CoreError.NoPermission.write(entityType(), entity.getId().toString());
     }
   }
 
-  private GroupEntity create(final AuthUser authUser, final GroupCommand.Create command) {
+  private GroupEntity create(final @Nullable UserEntity user, final GroupCommand.Create command) {
     if (this.repository.findOne(QGroupEntity.groupEntity.name.eq(command.name())).isPresent()) {
       throw new CoreError.AlreadyExist(entityType(), "name", command.name());
     }
 
     final var adminIds = new HashSet<>(command.admins());
-    Optional.ofNullable(authUser.user()).ifPresent(user -> adminIds.add(user.getId()));
+    Optional.ofNullable(user).ifPresent(u -> adminIds.add(u.getId()));
 
     final var admins =
-        this.userService.findAll(
-            authUser,
-            Sort.unsorted(),
-            command.admins().size(),
-            UserQuery.builder().id(new IdQuery.Multiple(adminIds)).build());
+        this.userService.findAll(Sort.unsorted(), command.admins().size(), new UserQuery(adminIds));
     final var members =
         this.userService.findAll(
-            authUser,
-            Sort.unsorted(),
-            command.members().size(),
-            UserQuery.builder().id(new IdQuery.Multiple(command.members())).build());
+            Sort.unsorted(), command.members().size(), new UserQuery(command.members()));
 
     return this.repository.save(
         new GroupEntity(
@@ -179,18 +172,17 @@ public class GroupService
   }
 
   private GroupEntity update(
-      final AuthUser authUser,
-      final GroupCommand.Update command,
-      final @Nullable GroupEntity entity) {
+      final GroupCommand.Update command, final @Nullable GroupEntity entity) {
     if (entity == null) {
       throw new CoreError.NotFound(entityType(), command.targetId());
     }
 
-    if (Optional.ofNullable(command.name())
-        .map(name -> this.repository.findOne(QGroupEntity.groupEntity.name.eq(name)).isPresent())
-        .orElse(false)) {
-      throw new CoreError.AlreadyExist(entityType(), "name", command.name());
-    }
+    Optional.ofNullable(command.name())
+        .flatMap(name -> this.repository.findOne(QGroupEntity.groupEntity.name.eq(name)))
+        .ifPresent(
+            e -> {
+              throw new CoreError.AlreadyExist(entityType(), "name", e.getName());
+            });
 
     if (command.name() == null
         && command.description() == null
@@ -202,22 +194,10 @@ public class GroupService
     Optional.ofNullable(command.name()).ifPresent(entity::setName);
     Optional.ofNullable(command.description()).ifPresent(entity::setDescription);
     Optional.ofNullable(command.admins())
-        .map(
-            ids ->
-                this.userService.findAll(
-                    authUser,
-                    Sort.unsorted(),
-                    ids.size(),
-                    UserQuery.builder().id(new IdQuery.Multiple(ids)).build()))
+        .map(ids -> this.userService.findAll(Sort.unsorted(), ids.size(), new UserQuery(ids)))
         .ifPresent(users -> entity.setAdmins(new HashSet<>(users)));
     Optional.ofNullable(command.members())
-        .map(
-            ids ->
-                this.userService.findAll(
-                    authUser,
-                    Sort.unsorted(),
-                    ids.size(),
-                    UserQuery.builder().id(new IdQuery.Multiple(ids)).build()))
+        .map(ids -> this.userService.findAll(Sort.unsorted(), ids.size(), new UserQuery(ids)))
         .ifPresent(users -> entity.setMembers(new HashSet<>(users)));
 
     return this.repository.save(entity);

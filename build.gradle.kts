@@ -6,11 +6,11 @@ plugins {
   id("jacoco-report-aggregation")
 
   id("com.github.spotbugs") version "5.0.9"
-  id("com.diffplug.spotless") version "6.9.0"
+  id("com.diffplug.spotless") version "6.9.1"
   id("com.github.ben-manes.versions") version "0.42.0"
   id("io.freefair.lombok") version "6.5.0.3"
 
-  id("io.spring.dependency-management") version "1.0.12.RELEASE"
+  id("io.spring.dependency-management") version "1.0.13.RELEASE"
 }
 
 group = "com.ukonnra.wonderland"
