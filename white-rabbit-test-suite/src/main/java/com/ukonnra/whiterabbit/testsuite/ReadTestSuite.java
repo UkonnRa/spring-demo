@@ -28,5 +28,6 @@ public abstract class ReadTestSuite<S extends ReadTestSuite<S, E, Q>, E, Q exten
   public void runTasks(final Task.Read<S, TaskInput.Read, ?> task) {
     this.dataGenerator.prepareData();
     this.taskHandler.handleTask((S) this, task);
+    this.dataGenerator.clear();
   }
 }

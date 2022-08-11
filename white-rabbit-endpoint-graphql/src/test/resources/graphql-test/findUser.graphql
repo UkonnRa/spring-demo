@@ -2,5 +2,11 @@ query findUser($query: String!) {
   user(query: $query) {
     id
     version
+    name
+    role
+    authIds {
+      provider
+      tokenValue
+    }
   }
 }

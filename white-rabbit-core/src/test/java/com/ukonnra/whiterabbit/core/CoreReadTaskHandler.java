@@ -17,17 +17,16 @@ public class CoreReadTaskHandler<S extends ReadTestSuite<S, E, Q>, E, Q extends 
   @Override
   protected void doHandle(final S suite, final Task.Read.FindOne<S, E, Q> task) {
     final var input = task.input().apply(suite);
-    final var authUser = suite.getAuthUser(input.authUser());
-    final var entity = this.service.findOne(authUser, input.query());
+    suite.setAuthentication(input.authUser());
+    final var entity = this.service.findOne(input.query());
     task.checker().accept(new CheckerInput<>(input, entity));
   }
 
   @Override
   protected void doHandle(final S suite, final Task.Read.FindPage<S, E, Q> task) {
     final var input = task.input().apply(suite);
-    final var authUser = suite.getAuthUser(input.authUser());
-    final var page =
-        this.service.findPage(authUser, input.pagination(), input.sort(), input.query());
+    suite.setAuthentication(input.authUser());
+    final var page = this.service.findPage(input.pagination(), input.sort(), input.query());
     task.checker().accept(new CheckerInput<>(input, page));
 
     if (task.expectNextPage() != null) {
@@ -36,7 +35,6 @@ public class CoreReadTaskHandler<S extends ReadTestSuite<S, E, Q>, E, Q extends 
 
         final var nextPage =
             this.service.findPage(
-                authUser,
                 new Pagination(page.info().endCursor(), null, input.pagination().size(), 0),
                 input.sort(),
                 input.query());
@@ -45,7 +43,6 @@ public class CoreReadTaskHandler<S extends ReadTestSuite<S, E, Q>, E, Q extends 
         Assertions.assertFalse(nextPage.items().isEmpty());
         final var nextPagePrevious =
             this.service.findPage(
-                authUser,
                 new Pagination(null, nextPage.info().startCursor(), input.pagination().size(), 0),
                 input.sort(),
                 input.query());

@@ -20,16 +20,16 @@ public class CoreWriteTaskHandler<
   @Override
   protected void doHandle(final S suite, final Task.Write.HandleCommand<S, E, C> task) {
     final var input = task.input().apply(suite);
-    final var authUser = suite.getAuthUser(input.authUser());
-    final var entity = this.service.handle(authUser, input.command());
+    suite.setAuthentication(input.authUser());
+    final var entity = this.service.handle(input.command());
     task.checker().accept(new CheckerInput<>(input, entity));
   }
 
   @Override
   protected void doHandle(final S suite, final Task.Write.HandleCommands<S, C, D> task) {
     final var input = task.input().apply(suite);
-    final var authUser = suite.getAuthUser(input.authUser());
-    final var entities = this.service.handleAll(authUser, input.commands());
+    suite.setAuthentication(input.authUser());
+    final var entities = this.service.handleAll(input.commands());
     task.checker().accept(new CheckerInput<>(input, entities));
   }
 }

@@ -36,5 +36,6 @@ public abstract class WriteTestSuite<
   public void runTasks(final Task.Write<S, TaskInput.Write, ?> task) {
     this.dataGenerator.prepareData();
     this.taskHandler.handleTask((S) this, task);
+    this.dataGenerator.clear();
   }
 }

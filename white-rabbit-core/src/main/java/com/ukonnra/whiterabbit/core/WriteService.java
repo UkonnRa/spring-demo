@@ -1,7 +1,8 @@
 package com.ukonnra.whiterabbit.core;
 
-import com.ukonnra.whiterabbit.core.auth.AuthUser;
 import com.ukonnra.whiterabbit.core.domain.user.RoleValue;
+import com.ukonnra.whiterabbit.core.domain.user.UserEntity;
+import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
 import com.ukonnra.whiterabbit.core.query.Query;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,40 +17,50 @@ public abstract class WriteService<
         E extends AbstractEntity<D>, C extends Command<C>, Q extends Query, D>
     extends ReadService<E, Q> {
   protected WriteService(
-      AbstractRepository<E> repository, Map<String, SortableField<E, ?>> sortableFields) {
-    super(repository, sortableFields);
+      UserRepository userRepository,
+      AbstractRepository<E> repository,
+      Map<String, SortableField<E, ?>> sortableFields) {
+    super(userRepository, repository, sortableFields);
   }
 
-  protected void doCheckWriteable(final AuthUser authUser, final E entity) {}
+  protected void doCheckWriteable(final @Nullable UserEntity user, final E entity) {}
 
-  public final void checkWriteable(final AuthUser authUser, final E entity) {
-    if (!authUser.scopes().contains(readScope())) {
-      throw CoreError.NoPermission.write(
-          entityType(), entity == null ? null : entity.getId().toString());
+  public abstract Optional<E> doHandle(
+      final @Nullable UserEntity user, final C command, @Nullable final E entity);
+
+  protected abstract String writeScope();
+
+  public final void checkWriteable(final @Nullable UserEntity user, final E entity) {
+    if (this.getAuthentication().stream()
+        .flatMap(a -> a.getAuthorities().stream())
+        .noneMatch(authority -> authority.getAuthority().equals("SCOPE_" + this.writeScope()))) {
+      throw CoreError.NoPermission.write(entityType(), this.getId(entity).toString());
     }
 
     // Admin can always writeable
-    if (Optional.ofNullable(authUser.user())
+    if (Optional.ofNullable(user)
         .map(u -> u.getRole().compareTo(RoleValue.USER) > 0)
         .orElse(false)) {
       return;
     }
 
-    doCheckWriteable(authUser, entity);
+    doCheckWriteable(user, entity);
   }
 
-  public abstract String writeScope();
+  public final void checkWriteable(final E entity) {
+    final var user = this.getAuthUser();
+    this.checkWriteable(user, entity);
+  }
 
   @Override
   protected UUID getId(E entity) {
     return entity.getId();
   }
 
-  protected abstract Optional<E> doHandle(
-      final AuthUser authUser, final C command, @Nullable final E entity);
-
   @Transactional
-  public Optional<E> handle(final AuthUser authUser, final C command) {
+  public Optional<E> handle(final C command) {
+    final var user = this.getAuthUser();
+
     final var entity =
         Optional.ofNullable(command.targetId())
             .flatMap(
@@ -63,15 +74,17 @@ public abstract class WriteService<
             .flatMap(this.repository::findById)
             .orElse(null);
     if (entity != null) {
-      this.checkWriteable(authUser, entity);
+      this.checkWriteable(user, entity);
     }
-    final var result = this.doHandle(authUser, command, entity);
+    final var result = this.doHandle(user, command, entity);
     this.repository.flush();
     return result;
   }
 
   @Transactional
-  public List<Optional<D>> handleAll(final AuthUser authUser, final List<C> commands) {
+  public List<Optional<D>> handleAll(final List<C> commands) {
+    final var user = this.getAuthUser();
+
     final var idMap = new HashMap<String, UUID>();
     final var results = new ArrayList<Optional<D>>();
 
@@ -91,12 +104,12 @@ public abstract class WriteService<
                               }));
       final var entity = realId.flatMap(this.repository::findById).orElse(null);
       if (entity != null) {
-        this.checkWriteable(authUser, entity);
+        this.checkWriteable(user, entity);
       }
       final var result =
           this.doHandle(
-              authUser, command.withTargetId(realId.map(UUID::toString).orElse(null)), entity);
-      results.add(result.map(e -> e.toDto()));
+              user, command.withTargetId(realId.map(UUID::toString).orElse(null)), entity);
+      results.add(result.map(AbstractEntity::toDto));
       result
           .map(E::getId)
           .ifPresent(

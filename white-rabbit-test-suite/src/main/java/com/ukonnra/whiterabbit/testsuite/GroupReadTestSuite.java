@@ -4,7 +4,7 @@ import com.ukonnra.whiterabbit.core.domain.group.GroupEntity;
 import com.ukonnra.whiterabbit.core.domain.group.GroupQuery;
 import com.ukonnra.whiterabbit.core.domain.group.GroupRepository;
 import com.ukonnra.whiterabbit.core.domain.group.QGroupEntity;
-import com.ukonnra.whiterabbit.core.domain.user.AuthIdValue;
+import com.ukonnra.whiterabbit.core.domain.user.QUserEntity;
 import com.ukonnra.whiterabbit.core.domain.user.RoleValue;
 import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
 import com.ukonnra.whiterabbit.core.query.IdQuery;
@@ -60,14 +60,21 @@ public abstract class GroupReadTestSuite
             }),
         new Task.Read.FindPage<GroupReadTestSuite, GroupEntity, GroupQuery>(
             "Find by page",
-            (suite) ->
-                new TaskInput.Read.FindPage<>(
-                    TaskInput.AuthUser.builder()
-                        .authId(new AuthIdValue("provider 1", "value 1"))
-                        .build(),
-                    Pagination.DEFAULT,
-                    Sort.by(Sort.Order.desc("name")),
-                    GroupQuery.builder().build()),
+            (suite) -> {
+              final var user =
+                  suite
+                      .userRepository
+                      .findAll(QUserEntity.userEntity.role.eq(RoleValue.OWNER))
+                      .iterator()
+                      .next();
+              return new TaskInput.Read.FindPage<>(
+                  TaskInput.AuthUser.builder()
+                      .authId(user.getAuthIds().stream().findFirst().orElseThrow())
+                      .build(),
+                  Pagination.DEFAULT,
+                  Sort.by(Sort.Order.desc("name")),
+                  GroupQuery.builder().build());
+            },
             false,
             true,
             (input) ->

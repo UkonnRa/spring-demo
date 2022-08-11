@@ -5,7 +5,8 @@ import com.ukonnra.whiterabbit.core.domain.record.QRecordEntity;
 import com.ukonnra.whiterabbit.core.domain.record.RecordEntity;
 import com.ukonnra.whiterabbit.core.domain.record.RecordQuery;
 import com.ukonnra.whiterabbit.core.domain.record.RecordRepository;
-import com.ukonnra.whiterabbit.core.domain.user.AuthIdValue;
+import com.ukonnra.whiterabbit.core.domain.user.QUserEntity;
+import com.ukonnra.whiterabbit.core.domain.user.RoleValue;
 import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
 import com.ukonnra.whiterabbit.core.query.IdQuery;
 import com.ukonnra.whiterabbit.core.query.Pagination;
@@ -66,14 +67,22 @@ public abstract class RecordReadTestSuite
             }),
         new Task.Read.FindPage<RecordReadTestSuite, RecordEntity, RecordQuery>(
             "Find by page",
-            (suite) ->
-                new TaskInput.Read.FindPage<>(
-                    TaskInput.AuthUser.builder()
-                        .authId(new AuthIdValue("provider 1", "value 1"))
-                        .build(),
-                    Pagination.DEFAULT,
-                    Sort.by(Sort.Order.desc("name")),
-                    RecordQuery.builder().build()),
+            (suite) -> {
+              final var user =
+                  suite
+                      .userRepository
+                      .findAll(QUserEntity.userEntity.role.eq(RoleValue.OWNER))
+                      .iterator()
+                      .next();
+
+              return new TaskInput.Read.FindPage<>(
+                  TaskInput.AuthUser.builder()
+                      .authId(user.getAuthIds().stream().findFirst().orElseThrow())
+                      .build(),
+                  Pagination.DEFAULT,
+                  Sort.by(Sort.Order.desc("name")),
+                  RecordQuery.builder().build());
+            },
             false,
             true,
             (input) ->

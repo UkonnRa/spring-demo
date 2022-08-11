@@ -4,8 +4,9 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.ukonnra.whiterabbit.core.CoreError;
 import com.ukonnra.whiterabbit.core.WriteService;
-import com.ukonnra.whiterabbit.core.auth.AuthUser;
-import com.ukonnra.whiterabbit.core.domain.group.GroupService;
+import com.ukonnra.whiterabbit.core.domain.group.GroupRepository;
+import com.ukonnra.whiterabbit.core.domain.user.UserEntity;
+import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
 import com.ukonnra.whiterabbit.core.query.ExternalQuery;
 import com.ukonnra.whiterabbit.core.query.TextQuery;
 import java.util.ArrayList;
@@ -29,25 +30,22 @@ public class JournalService
 
   private final JournalFullTextQueryService fullTextQueryService;
 
-  private final GroupService groupService;
+  private final GroupRepository groupRepository;
 
   protected JournalService(
+      UserRepository userRepository,
       JournalRepository repository,
       JournalFullTextQueryService fullTextQueryService,
-      GroupService groupService) {
+      GroupRepository groupRepository) {
     super(
+        userRepository,
         repository,
         Map.of(
             "name", new SortableField<>(QJournalEntity.journalEntity.name, JournalEntity::getName),
             "unit",
                 new SortableField<>(QJournalEntity.journalEntity.unit, JournalEntity::getUnit)));
     this.fullTextQueryService = fullTextQueryService;
-    this.groupService = groupService;
-  }
-
-  @Override
-  public String readScope() {
-    return READ_SCOPE;
+    this.groupRepository = groupRepository;
   }
 
   @Override
@@ -58,6 +56,21 @@ public class JournalService
   @Override
   protected String defaultSort() {
     return "name";
+  }
+
+  @Override
+  protected String writeScope() {
+    return WRITE_SCOPE;
+  }
+
+  @Override
+  protected String readScope() {
+    return READ_SCOPE;
+  }
+
+  @Override
+  protected UUID getId(JournalEntity entity) {
+    return entity.getId();
   }
 
   @Override
@@ -118,31 +131,19 @@ public class JournalService
       return true;
     }
 
-    return this.groupService
-        .findAll(
+    return this.groupRepository
+        .findAllById(
             items.stream()
                 .filter(item -> item.getItemType() == AccessItemValue.Type.GROUP)
                 .map(AccessItemValue::getId)
                 .toList())
-        .values()
         .stream()
         .anyMatch(group -> group.isContainingUser(userId));
   }
 
-  public boolean isContainingUser(final AccessItemValue item, final UUID userId) {
-    if (item.getItemType() == AccessItemValue.Type.USER) {
-      return item.getId().equals(userId);
-    } else {
-      return this.groupService
-          .findOne(item.getId())
-          .map(group -> group.isContainingUser(userId))
-          .orElse(false);
-    }
-  }
-
   @Override
   protected List<JournalEntity> handleExternalQuery(
-      AuthUser authUser, List<JournalEntity> entities, ExternalQuery query) {
+      final @Nullable UserEntity user, List<JournalEntity> entities, ExternalQuery query) {
     if (query instanceof ExternalQuery.FullText fullText) {
       return this.fullTextQueryService.handle(entities, fullText);
     } else if (query instanceof ExternalQuery.ContainingUser containingUser) {
@@ -167,21 +168,23 @@ public class JournalService
   }
 
   @Override
-  protected boolean doIsReadable(AuthUser authUser, JournalEntity entity) {
-    return Optional.ofNullable(authUser.user())
+  protected boolean doIsReadable(final @Nullable UserEntity user, JournalEntity entity) {
+    return Optional.ofNullable(user)
         .map(
-            user ->
+            u ->
                 this.isContainingUser(
                     Stream.concat(entity.getAdmins().stream(), entity.getMembers().stream())
                         .toList(),
-                    user.getId()))
+                    u.getId()))
         .orElse(false);
   }
 
   @Override
-  protected void doCheckWriteable(AuthUser authUser, JournalEntity entity) {
-    if (Optional.ofNullable(authUser.user())
-        .map(user -> !this.isContainingUser(entity.getAdmins(), user.getId()))
+  protected void doCheckWriteable(final @Nullable UserEntity user, JournalEntity entity) {
+    super.doCheckWriteable(user, entity);
+
+    if (Optional.ofNullable(user)
+        .map(u -> !this.isContainingUser(entity.getAdmins(), u.getId()))
         .orElse(true)) {
       throw CoreError.NoPermission.write(entityType(), entity.getId().toString());
     }
@@ -192,13 +195,8 @@ public class JournalService
   }
 
   @Override
-  public String writeScope() {
-    return WRITE_SCOPE;
-  }
-
-  @Override
-  protected Optional<JournalEntity> doHandle(
-      AuthUser authUser, JournalCommand command, @Nullable JournalEntity entity) {
+  public Optional<JournalEntity> doHandle(
+      final @Nullable UserEntity user, JournalCommand command, @Nullable JournalEntity entity) {
     if (command instanceof JournalCommand.Create create) {
       return Optional.of(this.create(create));
     } else if (command instanceof JournalCommand.Update update) {
@@ -231,12 +229,12 @@ public class JournalService
       throw new CoreError.NotFound(entityType(), command.targetId());
     }
 
-    if (Optional.ofNullable(command.name())
-        .map(
-            name -> this.repository.findOne(QJournalEntity.journalEntity.name.eq(name)).isPresent())
-        .orElse(false)) {
-      throw new CoreError.AlreadyExist(entityType(), "name", command.name());
-    }
+    Optional.ofNullable(command.name())
+        .flatMap(name -> this.repository.findOne(QJournalEntity.journalEntity.name.eq(name)))
+        .ifPresent(
+            e -> {
+              throw new CoreError.AlreadyExist(entityType(), "name", e.getName());
+            });
 
     if (command.name() == null
         && command.description() == null
