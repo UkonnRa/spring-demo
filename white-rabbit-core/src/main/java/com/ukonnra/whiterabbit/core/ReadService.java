@@ -32,7 +32,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
-public abstract class ReadService<E, Q extends Query> {
+public abstract class ReadService<E, Q extends Query, D> {
   protected final UserRepository userRepository;
   protected final AbstractRepository<E> repository;
   private final Map<String, SortableField<E, ?>> sortableFields;
@@ -53,6 +53,8 @@ public abstract class ReadService<E, Q extends Query> {
   protected abstract String readScope();
 
   protected abstract UUID getId(final E entity);
+
+  public abstract D toDto(final E entity);
 
   protected boolean doIsReadable(final @Nullable UserEntity user, final E entity) {
     return true;

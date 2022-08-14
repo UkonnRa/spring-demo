@@ -5,7 +5,6 @@ import com.ukonnra.whiterabbit.core.domain.journal.AccessItemValue;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalCommand;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalEntity;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalQuery;
-import com.ukonnra.whiterabbit.core.domain.journal.JournalRepository;
 import com.ukonnra.whiterabbit.core.domain.user.QUserEntity;
 import com.ukonnra.whiterabbit.core.domain.user.RoleValue;
 import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
@@ -22,7 +21,6 @@ import org.junit.jupiter.api.Assertions;
 public abstract class JournalWriteTestSuite
     extends WriteTestSuite<
         JournalWriteTestSuite, JournalEntity, JournalCommand, JournalQuery, JournalEntity.Dto> {
-  private final JournalRepository repository;
 
   private final GroupRepository groupRepository;
 
@@ -153,10 +151,8 @@ public abstract class JournalWriteTestSuite
           taskHandler,
       DataGenerator dataGenerator,
       UserRepository userRepository,
-      JournalRepository repository,
       GroupRepository groupRepository) {
     super(taskHandler, dataGenerator, userRepository);
-    this.repository = repository;
     this.groupRepository = groupRepository;
   }
 }

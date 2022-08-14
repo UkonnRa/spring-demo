@@ -19,12 +19,12 @@ import org.springframework.data.domain.Sort;
 
 @Slf4j
 public abstract class GroupReadTestSuite
-    extends ReadTestSuite<GroupReadTestSuite, GroupEntity, GroupQuery> {
+    extends ReadTestSuite<GroupReadTestSuite, GroupEntity, GroupQuery, GroupEntity.Dto> {
   private final GroupRepository repository;
 
   static Stream<Task.Read<GroupReadTestSuite, ?, ?>> generateTasks() {
     return Stream.of(
-        new Task.Read.FindOne<GroupReadTestSuite, GroupEntity, GroupQuery>(
+        new Task.Read.FindOne<GroupReadTestSuite, GroupQuery, GroupEntity.Dto>(
             "Find by id",
             (suite) -> {
               final var group =
@@ -49,16 +49,16 @@ public abstract class GroupReadTestSuite
             (input) -> {
               final var query = input.input().query();
               Assertions.assertTrue(
-                  input.result().orElseThrow().getAdmins().stream()
-                      .anyMatch(user -> query.admins().contains(user.getId())));
+                  input.result().orElseThrow().admins().stream()
+                      .anyMatch(user -> query.admins().contains(user)));
 
               if (input.input().query().id() instanceof IdQuery.Single single) {
-                Assertions.assertEquals(single.id(), input.result().orElseThrow().getId());
+                Assertions.assertEquals(single.id(), input.result().orElseThrow().id());
               } else {
                 Assertions.fail();
               }
             }),
-        new Task.Read.FindPage<GroupReadTestSuite, GroupEntity, GroupQuery>(
+        new Task.Read.FindPage<GroupReadTestSuite, GroupQuery, GroupEntity.Dto>(
             "Find by page",
             (suite) -> {
               final var user =
@@ -83,7 +83,7 @@ public abstract class GroupReadTestSuite
   }
 
   protected GroupReadTestSuite(
-      ReadTaskHandler<GroupReadTestSuite, GroupEntity, GroupQuery> taskHandler,
+      ReadTaskHandler<GroupReadTestSuite, GroupEntity, GroupQuery, GroupEntity.Dto> taskHandler,
       DataGenerator dataGenerator,
       UserRepository userRepository,
       GroupRepository groupRepository) {

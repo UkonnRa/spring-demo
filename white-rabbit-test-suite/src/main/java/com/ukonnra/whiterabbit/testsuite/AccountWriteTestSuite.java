@@ -3,7 +3,6 @@ package com.ukonnra.whiterabbit.testsuite;
 import com.ukonnra.whiterabbit.core.domain.account.AccountCommand;
 import com.ukonnra.whiterabbit.core.domain.account.AccountEntity;
 import com.ukonnra.whiterabbit.core.domain.account.AccountQuery;
-import com.ukonnra.whiterabbit.core.domain.account.AccountRepository;
 import com.ukonnra.whiterabbit.core.domain.account.AccountStrategy;
 import com.ukonnra.whiterabbit.core.domain.account.AccountType;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalRepository;
@@ -22,8 +21,6 @@ import org.junit.jupiter.api.Assertions;
 public abstract class AccountWriteTestSuite
     extends WriteTestSuite<
         AccountWriteTestSuite, AccountEntity, AccountCommand, AccountQuery, AccountEntity.Dto> {
-  private final AccountRepository repository;
-
   private final JournalRepository journalRepository;
 
   static Stream<Task.Write<AccountWriteTestSuite, ?, ?>> generateTasks() {
@@ -149,10 +146,8 @@ public abstract class AccountWriteTestSuite
           taskHandler,
       DataGenerator dataGenerator,
       UserRepository userRepository,
-      AccountRepository repository,
       JournalRepository journalRepository) {
     super(taskHandler, dataGenerator, userRepository);
-    this.repository = repository;
     this.journalRepository = journalRepository;
   }
 }

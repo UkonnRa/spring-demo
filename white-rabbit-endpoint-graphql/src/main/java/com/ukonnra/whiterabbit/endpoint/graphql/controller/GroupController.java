@@ -58,9 +58,9 @@ public class GroupController {
   }
 
   @QueryMapping
-  public GraphQlPage<GroupEntity, GroupEntity.Dto> groups(@Arguments final FindPageInput input)
+  public GraphQlPage<GroupEntity.Dto> groups(@Arguments final FindPageInput input)
       throws JsonProcessingException {
-    return new GraphQlPage<>(
+    return GraphQlPage.of(
         this.groupService.findPage(
             input.pagination(),
             GraphQlOrder.parseToModel(input.sort()),

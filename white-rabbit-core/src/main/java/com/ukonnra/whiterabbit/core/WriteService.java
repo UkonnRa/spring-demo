@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 public abstract class WriteService<
         E extends AbstractEntity<D>, C extends Command<C>, Q extends Query, D>
-    extends ReadService<E, Q> {
+    extends ReadService<E, Q, D> {
   protected WriteService(
       UserRepository userRepository,
       AbstractRepository<E> repository,
@@ -29,6 +29,16 @@ public abstract class WriteService<
       final @Nullable UserEntity user, final C command, @Nullable final E entity);
 
   protected abstract String writeScope();
+
+  @Override
+  protected UUID getId(E entity) {
+    return entity.getId();
+  }
+
+  @Override
+  public D toDto(E entity) {
+    return entity.toDto();
+  }
 
   public final void checkWriteable(final @Nullable UserEntity user, final E entity) {
     if (this.getAuthentication().stream()
@@ -50,11 +60,6 @@ public abstract class WriteService<
   public final void checkWriteable(final E entity) {
     final var user = this.getAuthUser();
     this.checkWriteable(user, entity);
-  }
-
-  @Override
-  protected UUID getId(E entity) {
-    return entity.getId();
   }
 
   @Transactional

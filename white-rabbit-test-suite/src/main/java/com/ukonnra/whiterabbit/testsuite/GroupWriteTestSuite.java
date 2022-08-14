@@ -4,7 +4,6 @@ import com.ukonnra.whiterabbit.core.AbstractEntity;
 import com.ukonnra.whiterabbit.core.domain.group.GroupCommand;
 import com.ukonnra.whiterabbit.core.domain.group.GroupEntity;
 import com.ukonnra.whiterabbit.core.domain.group.GroupQuery;
-import com.ukonnra.whiterabbit.core.domain.group.GroupRepository;
 import com.ukonnra.whiterabbit.core.domain.user.QUserEntity;
 import com.ukonnra.whiterabbit.core.domain.user.RoleValue;
 import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
@@ -28,7 +27,6 @@ import org.springframework.data.domain.Sort;
 public abstract class GroupWriteTestSuite
     extends WriteTestSuite<
         GroupWriteTestSuite, GroupEntity, GroupCommand, GroupQuery, GroupEntity.Dto> {
-  private final GroupRepository repository;
 
   private static Map.Entry<Set<UUID>, Set<UUID>> prepareAdminsMembers(
       final GroupWriteTestSuite suite) {
@@ -156,9 +154,7 @@ public abstract class GroupWriteTestSuite
       WriteTaskHandler<GroupWriteTestSuite, GroupEntity, GroupCommand, GroupQuery, GroupEntity.Dto>
           taskHandler,
       DataGenerator dataGenerator,
-      UserRepository userRepository,
-      GroupRepository repository) {
+      UserRepository userRepository) {
     super(taskHandler, dataGenerator, userRepository);
-    this.repository = repository;
   }
 }

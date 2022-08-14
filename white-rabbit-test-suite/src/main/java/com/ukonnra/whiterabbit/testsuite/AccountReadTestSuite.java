@@ -21,13 +21,13 @@ import org.springframework.data.domain.Sort;
 
 @Slf4j
 public abstract class AccountReadTestSuite
-    extends ReadTestSuite<AccountReadTestSuite, AccountEntity, AccountQuery> {
+    extends ReadTestSuite<AccountReadTestSuite, AccountEntity, AccountQuery, AccountEntity.Dto> {
   private final AccountRepository repository;
   private final JournalRepository journalRepository;
 
   static Stream<Task.Read<AccountReadTestSuite, ?, ?>> generateTasks() {
     return Stream.of(
-        new Task.Read.FindOne<AccountReadTestSuite, AccountEntity, AccountQuery>(
+        new Task.Read.FindOne<AccountReadTestSuite, AccountQuery, AccountEntity.Dto>(
             "Find by id",
             (suite) -> {
               final var accountBuilder = QAccountEntity.accountEntity;
@@ -65,15 +65,15 @@ public abstract class AccountReadTestSuite
             (input) -> {
               final var query = input.input().query();
               final var result = input.result().orElseThrow();
-              Assertions.assertEquals(query.journal(), result.getJournal().getId());
+              Assertions.assertEquals(query.journal(), result.journal());
 
               if (input.input().query().id() instanceof IdQuery.Single single) {
-                Assertions.assertEquals(single.id(), result.getId());
+                Assertions.assertEquals(single.id(), result.id());
               } else {
                 Assertions.fail();
               }
             }),
-        new Task.Read.FindPage<AccountReadTestSuite, AccountEntity, AccountQuery>(
+        new Task.Read.FindPage<AccountReadTestSuite, AccountQuery, AccountEntity.Dto>(
             "Find by page",
             (suite) -> {
               final var journal =
@@ -104,7 +104,8 @@ public abstract class AccountReadTestSuite
   }
 
   protected AccountReadTestSuite(
-      ReadTaskHandler<AccountReadTestSuite, AccountEntity, AccountQuery> taskHandler,
+      ReadTaskHandler<AccountReadTestSuite, AccountEntity, AccountQuery, AccountEntity.Dto>
+          taskHandler,
       UserRepository userRepository,
       DataGenerator dataGenerator,
       AccountRepository accountRepository,

@@ -1,6 +1,5 @@
 package com.ukonnra.whiterabbit.core;
 
-import com.ukonnra.whiterabbit.core.domain.group.GroupRepository;
 import com.ukonnra.whiterabbit.core.domain.group.GroupService;
 import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
 import com.ukonnra.whiterabbit.testsuite.DataGenerator;
@@ -15,10 +14,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class GroupWriteTest extends GroupWriteTestSuite {
   @Autowired
   protected GroupWriteTest(
-      DataGenerator dataGenerator,
-      UserRepository userRepository,
-      GroupRepository repository,
-      GroupService service) {
-    super(new CoreWriteTaskHandler<>(service), dataGenerator, userRepository, repository);
+      DataGenerator dataGenerator, UserRepository userRepository, GroupService service) {
+    super(new CoreWriteTaskHandler<>(service), dataGenerator, userRepository);
   }
 }

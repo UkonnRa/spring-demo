@@ -47,9 +47,9 @@ public class UserController {
   }
 
   @QueryMapping
-  public GraphQlPage<UserEntity, UserEntity.Dto> users(@Arguments final FindPageInput input)
+  public GraphQlPage<UserEntity.Dto> users(@Arguments final FindPageInput input)
       throws JsonProcessingException {
-    return new GraphQlPage<>(
+    return GraphQlPage.of(
         this.userService.findPage(
             input.pagination(),
             GraphQlOrder.parseToModel(input.sort()),

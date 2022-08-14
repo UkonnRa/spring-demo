@@ -18,12 +18,12 @@ import org.springframework.data.domain.Sort;
 
 @Slf4j
 public abstract class UserReadTestSuite
-    extends ReadTestSuite<UserReadTestSuite, UserEntity, UserQuery> {
+    extends ReadTestSuite<UserReadTestSuite, UserEntity, UserQuery, UserEntity.Dto> {
   private final UserRepository repository;
 
   static Stream<Task.Read<UserReadTestSuite, ?, ?>> generateTasks() {
     return Stream.of(
-        new Task.Read.FindOne<UserReadTestSuite, UserEntity, UserQuery>(
+        new Task.Read.FindOne<UserReadTestSuite, UserQuery, UserEntity.Dto>(
             "Find by id",
             (suite) -> {
               final var user =
@@ -38,12 +38,12 @@ public abstract class UserReadTestSuite
             },
             (input) -> {
               if (input.input().query().id() instanceof IdQuery.Single single) {
-                Assertions.assertEquals(single.id(), input.result().orElseThrow().getId());
+                Assertions.assertEquals(single.id(), input.result().orElseThrow().id());
               } else {
                 Assertions.fail();
               }
             }),
-        new Task.Read.FindPage<UserReadTestSuite, UserEntity, UserQuery>(
+        new Task.Read.FindPage<UserReadTestSuite, UserQuery, UserEntity.Dto>(
             "Find by page",
             (suite) ->
                 new TaskInput.Read.FindPage<>(
@@ -58,19 +58,26 @@ public abstract class UserReadTestSuite
             (input) ->
                 Assertions.assertEquals(
                     input.input().pagination().size(), input.result().items().size())),
-        new Task.Read.FindPage<UserReadTestSuite, UserEntity, UserQuery>(
+        new Task.Read.FindPage<UserReadTestSuite, UserQuery, UserEntity.Dto>(
             "Find USERS and name by page",
-            (suite) ->
-                new TaskInput.Read.FindPage<>(
-                    TaskInput.AuthUser.builder()
-                        .authId(new AuthIdValue("provider 1", "value 1"))
-                        .build(),
-                    new Pagination(null, null, 5, 0),
-                    Sort.unsorted(),
-                    UserQuery.builder()
-                        .role(RoleValue.USER)
-                        .name(new TextQuery.FullText("a"))
-                        .build()),
+            (suite) -> {
+              final var user =
+                  suite
+                      .userRepository
+                      .findAll(QUserEntity.userEntity.role.eq(RoleValue.OWNER))
+                      .iterator()
+                      .next();
+              return new TaskInput.Read.FindPage<>(
+                  TaskInput.AuthUser.builder()
+                      .authId(user.getAuthIds().stream().findFirst().orElseThrow())
+                      .build(),
+                  new Pagination(null, null, 5, 0),
+                  Sort.unsorted(),
+                  UserQuery.builder()
+                      .role(RoleValue.USER)
+                      .name(new TextQuery.FullText("a"))
+                      .build());
+            },
             false,
             true,
             (input) -> {
@@ -82,18 +89,18 @@ public abstract class UserReadTestSuite
                           entity ->
                               () -> {
                                 Assertions.assertEquals(
-                                    input.input().query().role(), entity.data().getRole());
+                                    input.input().query().role(), entity.data().role());
                                 if (input.input().query().name()
                                     instanceof TextQuery.FullText fullText) {
                                   Assertions.assertTrue(
-                                      entity.data().getName().contains(fullText.value()));
+                                      entity.data().name().contains(fullText.value()));
                                 }
                               }));
             }));
   }
 
   protected UserReadTestSuite(
-      ReadTaskHandler<UserReadTestSuite, UserEntity, UserQuery> taskHandler,
+      ReadTaskHandler<UserReadTestSuite, UserEntity, UserQuery, UserEntity.Dto> taskHandler,
       DataGenerator dataGenerator,
       UserRepository userRepository) {
     super(taskHandler, dataGenerator, userRepository);

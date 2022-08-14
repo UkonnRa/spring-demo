@@ -5,16 +5,16 @@ import com.ukonnra.whiterabbit.core.query.Query;
 import com.ukonnra.whiterabbit.testsuite.task.Task;
 import com.ukonnra.whiterabbit.testsuite.task.TaskInput;
 
-public abstract class ReadTaskHandler<S extends ReadTestSuite<S, E, Q>, E, Q extends Query> {
-  protected final ReadService<E, Q> service;
+public abstract class ReadTaskHandler<S extends ReadTestSuite<S, E, Q, D>, E, Q extends Query, D> {
+  protected final ReadService<E, Q, D> service;
 
-  protected ReadTaskHandler(ReadService<E, Q> service) {
+  protected ReadTaskHandler(ReadService<E, Q, D> service) {
     this.service = service;
   }
 
-  protected abstract void doHandle(final S suite, final Task.Read.FindOne<S, E, Q> task);
+  protected abstract void doHandle(final S suite, final Task.Read.FindOne<S, Q, D> task);
 
-  protected abstract void doHandle(final S suite, final Task.Read.FindPage<S, E, Q> task);
+  protected abstract void doHandle(final S suite, final Task.Read.FindPage<S, Q, D> task);
 
   public final void handleTask(final S suite, final Task.Read<S, TaskInput.Read, ?> task) {
     if (task instanceof Task.Read.FindOne findOne) {

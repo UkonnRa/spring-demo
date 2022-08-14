@@ -3,65 +3,60 @@ package com.ukonnra.whiterabbit.endpoint.graphql;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ukonnra.whiterabbit.core.ReadService;
-import com.ukonnra.whiterabbit.core.domain.user.UserEntity;
 import com.ukonnra.whiterabbit.core.query.Query;
 import com.ukonnra.whiterabbit.endpoint.graphql.model.GraphQlOrder;
-import com.ukonnra.whiterabbit.endpoint.graphql.model.GraphQlPage;
 import com.ukonnra.whiterabbit.testsuite.ReadTaskHandler;
 import com.ukonnra.whiterabbit.testsuite.ReadTestSuite;
+import com.ukonnra.whiterabbit.testsuite.task.CheckerInput;
 import com.ukonnra.whiterabbit.testsuite.task.Task;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 
 @Slf4j
-public class GraphQlReadTaskHandler<S extends ReadTestSuite<S, E, Q>, E, Q extends Query>
-    extends ReadTaskHandler<S, E, Q> {
+public class GraphQlReadTaskHandler<S extends ReadTestSuite<S, E, Q, D>, E, Q extends Query, D>
+    extends ReadTaskHandler<S, E, Q, D> {
   private final ObjectMapper objectMapper;
   private final HttpGraphQlTester tester;
-  private final Map<TaskType, String> graphQlNames;
+  private final GraphQlParams<D> graphQlParams;
 
   GraphQlReadTaskHandler(
       HttpGraphQlTester tester,
-      ReadService<E, Q> service,
+      ReadService<E, Q, D> service,
       ObjectMapper objectMapper,
-      Map<TaskType, String> graphQlNames) {
+      GraphQlParams<D> graphQlParams) {
     super(service);
     this.tester = tester;
     this.objectMapper = objectMapper;
-    this.graphQlNames = graphQlNames;
+    this.graphQlParams = graphQlParams;
   }
 
   @Override
-  protected void doHandle(final S suite, final Task.Read.FindOne<S, E, Q> task) {
+  protected void doHandle(final S suite, final Task.Read.FindOne<S, Q, D> task) {
     final var input = task.input().apply(suite);
-    final var operatorName = this.graphQlNames.get(TaskType.FIND_ONE);
     suite.setAuthentication(input.authUser());
     try {
       final var response =
           tester
-              .documentName(operatorName)
+              .documentName(this.graphQlParams.operatorNames().get(GraphQlParams.TaskType.FIND_ONE))
               .variable("query", this.objectMapper.writeValueAsString(input.query()))
               .execute();
       response.errors().verify();
-
-      log.info("{} result: {}", operatorName, response.path("user").hasValue());
+      task.checker()
+          .accept(new CheckerInput<>(input, this.graphQlParams.findOneMapper().apply(response)));
     } catch (JsonProcessingException e) {
       Assertions.fail(e);
     }
   }
 
   @Override
-  protected void doHandle(final S suite, final Task.Read.FindPage<S, E, Q> task) {
+  protected void doHandle(final S suite, final Task.Read.FindPage<S, Q, D> task) {
     final var input = task.input().apply(suite);
-    final var operatorName = this.graphQlNames.get(TaskType.FIND_ALL);
     suite.setAuthentication(input.authUser());
     try {
       final var request =
           tester
-              .documentName(operatorName)
+              .documentName(this.graphQlParams.operatorNames().get(GraphQlParams.TaskType.FIND_ALL))
               .variable("query", this.objectMapper.writeValueAsString(input.query()))
               .variable(
                   "sort",
@@ -86,20 +81,9 @@ public class GraphQlReadTaskHandler<S extends ReadTestSuite<S, E, Q>, E, Q exten
 
       final var response = request.execute();
       response.errors().verify();
-      log.info(
-          "{} result: {}",
-          operatorName,
-          response
-              .path("users")
-              .entity(
-                  new ParameterizedTypeReference<GraphQlPage<UserEntity, UserEntity.Dto>>() {}));
+      task.checker().accept(new CheckerInput<>(input, this.graphQlParams.getPage(response)));
     } catch (JsonProcessingException e) {
       Assertions.fail(e);
     }
-  }
-
-  public enum TaskType {
-    FIND_ONE,
-    FIND_ALL;
   }
 }

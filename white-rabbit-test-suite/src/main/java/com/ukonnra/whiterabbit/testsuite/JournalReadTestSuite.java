@@ -19,12 +19,12 @@ import org.springframework.data.domain.Sort;
 
 @Slf4j
 public abstract class JournalReadTestSuite
-    extends ReadTestSuite<JournalReadTestSuite, JournalEntity, JournalQuery> {
+    extends ReadTestSuite<JournalReadTestSuite, JournalEntity, JournalQuery, JournalEntity.Dto> {
   private final JournalRepository repository;
 
   static Stream<Task.Read<JournalReadTestSuite, ?, ?>> generateTasks() {
     return Stream.of(
-        new Task.Read.FindOne<JournalReadTestSuite, JournalEntity, JournalQuery>(
+        new Task.Read.FindOne<JournalReadTestSuite, JournalQuery, JournalEntity.Dto>(
             "Find by id",
             (suite) -> {
               final var journalBuilder = QJournalEntity.journalEntity;
@@ -58,16 +58,15 @@ public abstract class JournalReadTestSuite
             },
             (input) -> {
               final var query = input.input().query();
-              Assertions.assertTrue(
-                  input.result().orElseThrow().getAdmins().contains(query.admin()));
+              Assertions.assertTrue(input.result().orElseThrow().admins().contains(query.admin()));
 
               if (input.input().query().id() instanceof IdQuery.Single single) {
-                Assertions.assertEquals(single.id(), input.result().orElseThrow().getId());
+                Assertions.assertEquals(single.id(), input.result().orElseThrow().id());
               } else {
                 Assertions.fail();
               }
             }),
-        new Task.Read.FindPage<JournalReadTestSuite, JournalEntity, JournalQuery>(
+        new Task.Read.FindPage<JournalReadTestSuite, JournalQuery, JournalEntity.Dto>(
             "Find by page",
             (suite) -> {
               final var user =
@@ -93,7 +92,8 @@ public abstract class JournalReadTestSuite
   }
 
   protected JournalReadTestSuite(
-      ReadTaskHandler<JournalReadTestSuite, JournalEntity, JournalQuery> taskHandler,
+      ReadTaskHandler<JournalReadTestSuite, JournalEntity, JournalQuery, JournalEntity.Dto>
+          taskHandler,
       DataGenerator dataGenerator,
       UserRepository userRepository,
       JournalRepository journalRepository) {

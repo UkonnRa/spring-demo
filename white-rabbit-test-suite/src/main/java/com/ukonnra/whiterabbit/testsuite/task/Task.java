@@ -22,19 +22,19 @@ public sealed interface Task<S extends TestSuite, I extends TaskInput, R>
 
   sealed interface Read<S extends TestSuite, I extends TaskInput.Read, R> extends Task<S, I, R>
       permits Read.FindOne, Read.FindPage {
-    record FindOne<S extends TestSuite, E, Q extends Query>(
+    record FindOne<S extends TestSuite, Q extends Query, D>(
         String name,
         Function<S, TaskInput.Read.FindOne<Q>> input,
-        Consumer<CheckerInput<TaskInput.Read.FindOne<Q>, Optional<E>>> checker)
-        implements Read<S, TaskInput.Read.FindOne<Q>, Optional<E>> {}
+        Consumer<CheckerInput<TaskInput.Read.FindOne<Q>, Optional<D>>> checker)
+        implements Read<S, TaskInput.Read.FindOne<Q>, Optional<D>> {}
 
-    record FindPage<S extends TestSuite, E, Q extends Query>(
+    record FindPage<S extends TestSuite, Q extends Query, D>(
         String name,
         Function<S, TaskInput.Read.FindPage<Q>> input,
         @Nullable Boolean expectPreviousPage,
         @Nullable Boolean expectNextPage,
-        Consumer<CheckerInput<TaskInput.Read.FindPage<Q>, Page<E>>> checker)
-        implements Read<S, TaskInput.Read.FindPage<Q>, Page<E>> {}
+        Consumer<CheckerInput<TaskInput.Read.FindPage<Q>, Page<D>>> checker)
+        implements Read<S, TaskInput.Read.FindPage<Q>, Page<D>> {}
   }
 
   sealed interface Write<S extends TestSuite, I extends TaskInput.Write, R> extends Task<S, I, R>

@@ -1,7 +1,6 @@
 package com.ukonnra.whiterabbit.core;
 
 import com.ukonnra.whiterabbit.core.domain.group.GroupRepository;
-import com.ukonnra.whiterabbit.core.domain.journal.JournalRepository;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalService;
 import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
 import com.ukonnra.whiterabbit.testsuite.DataGenerator;
@@ -18,14 +17,8 @@ public class JournalWriteTest extends JournalWriteTestSuite {
   protected JournalWriteTest(
       DataGenerator dataGenerator,
       UserRepository userRepository,
-      JournalRepository repository,
       JournalService service,
       GroupRepository groupRepository) {
-    super(
-        new CoreWriteTaskHandler<>(service),
-        dataGenerator,
-        userRepository,
-        repository,
-        groupRepository);
+    super(new CoreWriteTaskHandler<>(service), dataGenerator, userRepository, groupRepository);
   }
 }

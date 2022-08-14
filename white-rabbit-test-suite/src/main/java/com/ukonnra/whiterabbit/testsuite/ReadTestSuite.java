@@ -8,13 +8,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.transaction.annotation.Transactional;
 
-public abstract class ReadTestSuite<S extends ReadTestSuite<S, E, Q>, E, Q extends Query>
+public abstract class ReadTestSuite<S extends ReadTestSuite<S, E, Q, D>, E, Q extends Query, D>
     extends TestSuite {
-  private final ReadTaskHandler<S, E, Q> taskHandler;
+  private final ReadTaskHandler<S, E, Q, D> taskHandler;
   private final DataGenerator dataGenerator;
 
   protected ReadTestSuite(
-      ReadTaskHandler<S, E, Q> taskHandler,
+      ReadTaskHandler<S, E, Q, D> taskHandler,
       DataGenerator dataGenerator,
       UserRepository userRepository) {
     super(userRepository);

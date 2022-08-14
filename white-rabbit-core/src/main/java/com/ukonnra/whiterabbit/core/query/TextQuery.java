@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import java.io.IOException;
+import java.util.Map;
 
 @JsonSerialize(using = TextQuery.Serializer.class)
 @JsonDeserialize(using = TextQuery.Deserializer.class)
@@ -30,7 +31,7 @@ public sealed interface TextQuery permits TextQuery.Eq, TextQuery.FullText {
       if (value instanceof Eq eq) {
         gen.writeString(eq.value);
       } else if (value instanceof FullText fullText) {
-        gen.writeObject(fullText.value);
+        gen.writeObject(Map.of("$fullText", fullText.value));
       }
     }
   }

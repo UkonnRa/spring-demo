@@ -4,9 +4,9 @@ import com.ukonnra.whiterabbit.core.AbstractEntity;
 import com.ukonnra.whiterabbit.core.query.Page;
 import java.util.List;
 
-public record GraphQlPage<E extends AbstractEntity<D>, D>(Page.Info pageInfo, List<Edge<D>> edges) {
-  public GraphQlPage(Page<E> page) {
-    this(
+public record GraphQlPage<D>(Page.Info pageInfo, List<Edge<D>> edges) {
+  public static <E extends AbstractEntity<D>, D> GraphQlPage<D> of(final Page<E> page) {
+    return new GraphQlPage<>(
         page.info(),
         page.items().stream().map(item -> new Edge<>(item.cursor(), item.data().toDto())).toList());
   }

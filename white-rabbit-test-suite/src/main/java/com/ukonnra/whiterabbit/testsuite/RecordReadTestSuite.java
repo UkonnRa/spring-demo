@@ -19,12 +19,12 @@ import org.springframework.data.domain.Sort;
 
 @Slf4j
 public abstract class RecordReadTestSuite
-    extends ReadTestSuite<RecordReadTestSuite, RecordEntity, RecordQuery> {
+    extends ReadTestSuite<RecordReadTestSuite, RecordEntity, RecordQuery, RecordEntity.Dto> {
   private final RecordRepository repository;
 
   static Stream<Task.Read<RecordReadTestSuite, ?, ?>> generateTasks() {
     return Stream.of(
-        new Task.Read.FindOne<RecordReadTestSuite, RecordEntity, RecordQuery>(
+        new Task.Read.FindOne<RecordReadTestSuite, RecordQuery, RecordEntity.Dto>(
             "Find by id",
             (suite) -> {
               final var journalSubBuilder = QRecordEntity.recordEntity.journal;
@@ -57,15 +57,15 @@ public abstract class RecordReadTestSuite
             (input) -> {
               final var query = input.input().query();
               final var result = input.result().orElseThrow();
-              Assertions.assertEquals(query.journal(), result.getJournal().getId());
+              Assertions.assertEquals(query.journal(), result.journal());
 
               if (input.input().query().id() instanceof IdQuery.Single single) {
-                Assertions.assertEquals(single.id(), result.getId());
+                Assertions.assertEquals(single.id(), result.id());
               } else {
                 Assertions.fail();
               }
             }),
-        new Task.Read.FindPage<RecordReadTestSuite, RecordEntity, RecordQuery>(
+        new Task.Read.FindPage<RecordReadTestSuite, RecordQuery, RecordEntity.Dto>(
             "Find by page",
             (suite) -> {
               final var user =
@@ -91,7 +91,7 @@ public abstract class RecordReadTestSuite
   }
 
   protected RecordReadTestSuite(
-      ReadTaskHandler<RecordReadTestSuite, RecordEntity, RecordQuery> taskHandler,
+      ReadTaskHandler<RecordReadTestSuite, RecordEntity, RecordQuery, RecordEntity.Dto> taskHandler,
       DataGenerator dataGenerator,
       UserRepository userRepository,
       RecordRepository recordRepository) {
