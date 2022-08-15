@@ -9,7 +9,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-graphql")
   implementation("org.springframework.boot:spring-boot-starter-websocket")
-  implementation("com.graphql-java:graphql-java-extended-scalars:18.1")
+  implementation("com.graphql-java:graphql-java-extended-scalars:2022-05-10T06-46-51-2bc8468")
 
   implementation("org.springframework.security:spring-security-oauth2-resource-server")
   implementation("org.springframework.security:spring-security-oauth2-jose")
