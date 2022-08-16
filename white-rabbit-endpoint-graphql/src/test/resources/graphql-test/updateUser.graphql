@@ -1,7 +1,9 @@
 mutation updateUser($targetId: ID!, $name: String, $role: Role, $authIds: [AuthIdInput!]) {
   updateUser(targetId: $targetId, name: $name, role: $role, authIds: $authIds) {
     id
+    version
     name
+    role
     authIds {
       provider
       tokenValue

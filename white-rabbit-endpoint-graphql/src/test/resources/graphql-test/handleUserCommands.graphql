@@ -2,6 +2,7 @@ mutation handleUserCommands($commands: [JSON!]!) {
   handleUserCommands(commands: $commands) {
     id
     name
+    role
     authIds {
       provider
       tokenValue

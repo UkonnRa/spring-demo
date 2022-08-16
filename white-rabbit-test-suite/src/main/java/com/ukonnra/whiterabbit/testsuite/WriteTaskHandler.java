@@ -19,7 +19,7 @@ public abstract class WriteTaskHandler<
     this.service = service;
   }
 
-  protected abstract void doHandle(final S suite, final Task.Write.HandleCommand<S, E, C> task);
+  protected abstract void doHandle(final S suite, final Task.Write.HandleCommand<S, C, D> task);
 
   protected abstract void doHandle(final S suite, final Task.Write.HandleCommands<S, C, D> task);
 

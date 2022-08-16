@@ -44,7 +44,7 @@ public class GroupEntity extends AbstractEntity<GroupEntity.Dto> {
   private String description;
 
   @ManyToMany
-  @Size(min = 1, max = ITEM_MAX_LENGTH)
+  @Size(max = ITEM_MAX_LENGTH)
   private Set<UserEntity> admins;
 
   @ManyToMany

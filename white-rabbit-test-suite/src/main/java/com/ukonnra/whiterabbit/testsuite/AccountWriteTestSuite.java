@@ -25,7 +25,8 @@ public abstract class AccountWriteTestSuite
 
   static Stream<Task.Write<AccountWriteTestSuite, ?, ?>> generateTasks() {
     return Stream.of(
-        new Task.Write.HandleCommand<AccountWriteTestSuite, AccountEntity, AccountCommand.Create>(
+        new Task.Write.HandleCommand<
+            AccountWriteTestSuite, AccountCommand.Create, AccountEntity.Dto>(
             "Create",
             (suite) -> {
               final var user =
@@ -56,11 +57,11 @@ public abstract class AccountWriteTestSuite
             (input) -> {
               final var result = input.result().orElseThrow();
               final var command = input.input().command();
-              Assertions.assertEquals(command.name(), result.getName());
-              Assertions.assertEquals(command.description(), result.getDescription());
-              Assertions.assertEquals(command.accountType(), result.getType());
-              Assertions.assertEquals(command.strategy(), result.getStrategy());
-              Assertions.assertEquals(command.unit(), result.getUnit());
+              Assertions.assertEquals(command.name(), result.name());
+              Assertions.assertEquals(command.description(), result.description());
+              Assertions.assertEquals(command.accountType(), result.type());
+              Assertions.assertEquals(command.strategy(), result.strategy());
+              Assertions.assertEquals(command.unit(), result.unit());
             }),
         new Task.Write.HandleCommands<AccountWriteTestSuite, AccountCommand, AccountEntity.Dto>(
             "Handle all commands",

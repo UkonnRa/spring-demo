@@ -18,11 +18,11 @@ public class CoreWriteTaskHandler<
   }
 
   @Override
-  protected void doHandle(final S suite, final Task.Write.HandleCommand<S, E, C> task) {
+  protected void doHandle(final S suite, final Task.Write.HandleCommand<S, C, D> task) {
     final var input = task.input().apply(suite);
     suite.setAuthentication(input.authUser());
     final var entity = this.service.handle(input.command());
-    task.checker().accept(new CheckerInput<>(input, entity));
+    task.checker().accept(new CheckerInput<>(input, entity.map(AbstractEntity::toDto)));
   }
 
   @Override

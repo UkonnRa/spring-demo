@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
@@ -44,7 +43,7 @@ public abstract class GroupWriteTestSuite
 
   static Stream<Task.Write<GroupWriteTestSuite, ?, ?>> generateTasks() {
     return Stream.of(
-        new Task.Write.HandleCommand<GroupWriteTestSuite, GroupEntity, GroupCommand.Create>(
+        new Task.Write.HandleCommand<GroupWriteTestSuite, GroupCommand.Create, GroupEntity.Dto>(
             "Create",
             (suite) -> {
               final var user =
@@ -68,18 +67,10 @@ public abstract class GroupWriteTestSuite
             (input) -> {
               final var result = input.result().orElseThrow();
               final var command = input.input().command();
-              Assertions.assertEquals(command.name(), result.getName());
-              Assertions.assertEquals(command.description(), result.getDescription());
-              Assertions.assertEquals(
-                  command.admins(),
-                  result.getAdmins().stream()
-                      .map(AbstractEntity::getId)
-                      .collect(Collectors.toSet()));
-              Assertions.assertEquals(
-                  command.members(),
-                  result.getMembers().stream()
-                      .map(AbstractEntity::getId)
-                      .collect(Collectors.toSet()));
+              Assertions.assertEquals(command.name(), result.name());
+              Assertions.assertEquals(command.description(), result.description());
+              Assertions.assertEquals(command.admins(), result.admins());
+              Assertions.assertEquals(command.members(), result.members());
             }),
         new Task.Write.HandleCommands<GroupWriteTestSuite, GroupCommand, GroupEntity.Dto>(
             "Handle all commands",

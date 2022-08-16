@@ -3,14 +3,20 @@ package com.ukonnra.whiterabbit.endpoint.graphql;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ukonnra.whiterabbit.core.ReadService;
+import com.ukonnra.whiterabbit.core.query.Page;
 import com.ukonnra.whiterabbit.core.query.Query;
 import com.ukonnra.whiterabbit.endpoint.graphql.model.GraphQlOrder;
+import com.ukonnra.whiterabbit.endpoint.graphql.model.GraphQlPage;
 import com.ukonnra.whiterabbit.testsuite.ReadTaskHandler;
 import com.ukonnra.whiterabbit.testsuite.ReadTestSuite;
 import com.ukonnra.whiterabbit.testsuite.task.CheckerInput;
 import com.ukonnra.whiterabbit.testsuite.task.Task;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
+import org.springframework.graphql.test.tester.GraphQlTester;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 
 @Slf4j
@@ -18,17 +24,17 @@ public class GraphQlReadTaskHandler<S extends ReadTestSuite<S, E, Q, D>, E, Q ex
     extends ReadTaskHandler<S, E, Q, D> {
   private final ObjectMapper objectMapper;
   private final HttpGraphQlTester tester;
-  private final GraphQlParams<D> graphQlParams;
+  private final Params<D> graphQlReadParams;
 
   GraphQlReadTaskHandler(
       HttpGraphQlTester tester,
       ReadService<E, Q, D> service,
       ObjectMapper objectMapper,
-      GraphQlParams<D> graphQlParams) {
+      Params<D> graphQlReadParams) {
     super(service);
     this.tester = tester;
     this.objectMapper = objectMapper;
-    this.graphQlParams = graphQlParams;
+    this.graphQlReadParams = graphQlReadParams;
   }
 
   @Override
@@ -38,12 +44,13 @@ public class GraphQlReadTaskHandler<S extends ReadTestSuite<S, E, Q, D>, E, Q ex
     try {
       final var response =
           tester
-              .documentName(this.graphQlParams.operatorNames().get(GraphQlParams.TaskType.FIND_ONE))
+              .documentName(this.graphQlReadParams.operatorNames().get(TaskType.FIND_ONE))
               .variable("query", this.objectMapper.writeValueAsString(input.query()))
               .execute();
       response.errors().verify();
       task.checker()
-          .accept(new CheckerInput<>(input, this.graphQlParams.findOneMapper().apply(response)));
+          .accept(
+              new CheckerInput<>(input, this.graphQlReadParams.findOneMapper().apply(response)));
     } catch (JsonProcessingException e) {
       Assertions.fail(e);
     }
@@ -56,7 +63,7 @@ public class GraphQlReadTaskHandler<S extends ReadTestSuite<S, E, Q, D>, E, Q ex
     try {
       final var request =
           tester
-              .documentName(this.graphQlParams.operatorNames().get(GraphQlParams.TaskType.FIND_ALL))
+              .documentName(this.graphQlReadParams.operatorNames().get(TaskType.FIND_ALL))
               .variable("query", this.objectMapper.writeValueAsString(input.query()))
               .variable(
                   "sort",
@@ -81,9 +88,26 @@ public class GraphQlReadTaskHandler<S extends ReadTestSuite<S, E, Q, D>, E, Q ex
 
       final var response = request.execute();
       response.errors().verify();
-      task.checker().accept(new CheckerInput<>(input, this.graphQlParams.getPage(response)));
+      task.checker().accept(new CheckerInput<>(input, this.graphQlReadParams.getPage(response)));
     } catch (JsonProcessingException e) {
       Assertions.fail(e);
     }
+  }
+
+  public record Params<D>(
+      Map<TaskType, String> operatorNames,
+      Function<GraphQlTester.Response, Optional<D>> findOneMapper,
+      Function<GraphQlTester.Response, GraphQlPage<D>> findPageMapper) {
+    public Page<D> getPage(final GraphQlTester.Response response) {
+      final var page = this.findPageMapper.apply(response);
+      return new Page<>(
+          page.pageInfo(),
+          page.edges().stream().map(edge -> new Page.Item<>(edge.cursor(), edge.node())).toList());
+    }
+  }
+
+  public enum TaskType {
+    FIND_ONE,
+    FIND_ALL
   }
 }

@@ -49,7 +49,7 @@ public abstract class RecordWriteTestSuite
 
   static Stream<Task.Write<RecordWriteTestSuite, ?, ?>> generateTasks() {
     return Stream.of(
-        new Task.Write.HandleCommand<RecordWriteTestSuite, RecordEntity, RecordCommand.Create>(
+        new Task.Write.HandleCommand<RecordWriteTestSuite, RecordCommand.Create, RecordEntity.Dto>(
             "Create",
             (suite) -> {
               final var user =
@@ -84,12 +84,12 @@ public abstract class RecordWriteTestSuite
             (input) -> {
               final var result = input.result().orElseThrow();
               final var command = input.input().command();
-              Assertions.assertEquals(command.name(), result.getName());
-              Assertions.assertEquals(command.description(), result.getDescription());
-              Assertions.assertEquals(command.recordType(), result.getType());
-              Assertions.assertEquals(command.date(), result.getDate());
-              Assertions.assertEquals(command.tags(), result.getTags());
-              Assertions.assertEquals(command.items(), RecordItemValue.Dto.of(result.getItems()));
+              Assertions.assertEquals(command.name(), result.name());
+              Assertions.assertEquals(command.description(), result.description());
+              Assertions.assertEquals(command.recordType(), result.type());
+              Assertions.assertEquals(command.date(), result.date());
+              Assertions.assertEquals(command.tags(), result.tags());
+              Assertions.assertEquals(command.items(), result.items());
             }),
         new Task.Write.HandleCommands<RecordWriteTestSuite, RecordCommand, RecordEntity.Dto>(
             "Handle all commands",

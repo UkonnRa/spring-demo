@@ -33,7 +33,8 @@ public abstract class JournalWriteTestSuite
 
   static Stream<Task.Write<JournalWriteTestSuite, ?, ?>> generateTasks() {
     return Stream.of(
-        new Task.Write.HandleCommand<JournalWriteTestSuite, JournalEntity, JournalCommand.Create>(
+        new Task.Write.HandleCommand<
+            JournalWriteTestSuite, JournalCommand.Create, JournalEntity.Dto>(
             "Create",
             (suite) -> {
               final var user =
@@ -59,10 +60,10 @@ public abstract class JournalWriteTestSuite
             (input) -> {
               final var result = input.result().orElseThrow();
               final var command = input.input().command();
-              Assertions.assertEquals(command.name(), result.getName());
-              Assertions.assertEquals(command.description(), result.getDescription());
-              Assertions.assertTrue(command.admins().containsAll(result.getAdmins()));
-              Assertions.assertTrue(command.members().containsAll(result.getMembers()));
+              Assertions.assertEquals(command.name(), result.name());
+              Assertions.assertEquals(command.description(), result.description());
+              Assertions.assertTrue(command.admins().containsAll(result.admins()));
+              Assertions.assertTrue(command.members().containsAll(result.members()));
             }),
         new Task.Write.HandleCommands<JournalWriteTestSuite, JournalCommand, JournalEntity.Dto>(
             "Handle all commands",

@@ -1,5 +1,12 @@
 mutation deleteUser($targetId: ID!) {
   deleteUser(targetId: $targetId) {
-    _
+    id
+    version
+    name
+    role
+    authIds {
+      provider
+      tokenValue
+    }
   }
 }

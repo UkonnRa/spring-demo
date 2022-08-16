@@ -23,7 +23,7 @@ public abstract class UserWriteTestSuite
 
   static Stream<Task.Write<UserWriteTestSuite, ?, ?>> generateTasks() {
     return Stream.of(
-        new Task.Write.HandleCommand<UserWriteTestSuite, UserEntity, UserCommand.Create>(
+        new Task.Write.HandleCommand<UserWriteTestSuite, UserCommand.Create, UserEntity.Dto>(
             "Create",
             (suite) -> {
               final var user =
@@ -43,10 +43,30 @@ public abstract class UserWriteTestSuite
             (input) -> {
               final var result = input.result().orElseThrow();
               final var command = input.input().command();
-              Assertions.assertEquals(command.name(), result.getName());
-              Assertions.assertEquals(command.role(), result.getRole());
-              Assertions.assertEquals(command.authIds(), result.getAuthIds());
+              Assertions.assertEquals(command.name(), result.name());
+              Assertions.assertEquals(command.role(), result.role());
+              Assertions.assertEquals(command.authIds(), result.authIds());
             }),
+        new Task.Write.HandleCommand<UserWriteTestSuite, UserCommand.Delete, UserEntity.Dto>(
+            "Delete user by id by OWNER",
+            (suite) -> {
+              final var user =
+                  suite
+                      .repository
+                      .findAll(QUserEntity.userEntity.role.eq(RoleValue.OWNER))
+                      .iterator()
+                      .next();
+              final var deleted =
+                  suite
+                      .repository
+                      .findAll(QUserEntity.userEntity.role.eq(RoleValue.USER))
+                      .iterator()
+                      .next();
+              return new TaskInput.Write.HandleCommand<>(
+                  new TaskInput.AuthUser(user, null),
+                  new UserCommand.Delete(deleted.getId().toString()));
+            },
+            (input) -> Assertions.assertTrue(input.result().isEmpty())),
         new Task.Write.HandleCommands<UserWriteTestSuite, UserCommand, UserEntity.Dto>(
             "Handle all commands",
             (suite) -> {

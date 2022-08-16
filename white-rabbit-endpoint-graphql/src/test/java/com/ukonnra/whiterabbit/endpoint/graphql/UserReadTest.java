@@ -38,11 +38,11 @@ public class UserReadTest extends UserReadTestSuite {
             tester,
             service,
             objectMapper,
-            new GraphQlParams<>(
+            new GraphQlReadTaskHandler.Params<>(
                 Map.of(
-                    GraphQlParams.TaskType.FIND_ONE,
+                    GraphQlReadTaskHandler.TaskType.FIND_ONE,
                     "findUser",
-                    GraphQlParams.TaskType.FIND_ALL,
+                    GraphQlReadTaskHandler.TaskType.FIND_ALL,
                     "findUsers"),
                 response ->
                     response

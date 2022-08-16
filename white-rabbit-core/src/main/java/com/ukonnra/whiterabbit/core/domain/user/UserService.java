@@ -4,6 +4,11 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.ukonnra.whiterabbit.core.CoreError;
 import com.ukonnra.whiterabbit.core.WriteService;
+import com.ukonnra.whiterabbit.core.domain.group.GroupRepository;
+import com.ukonnra.whiterabbit.core.domain.group.QGroupEntity;
+import com.ukonnra.whiterabbit.core.domain.journal.AccessItemValue;
+import com.ukonnra.whiterabbit.core.domain.journal.JournalRepository;
+import com.ukonnra.whiterabbit.core.domain.journal.QJournalEntity;
 import com.ukonnra.whiterabbit.core.query.ExternalQuery;
 import com.ukonnra.whiterabbit.core.query.TextQuery;
 import java.util.ArrayList;
@@ -23,13 +28,21 @@ public class UserService extends WriteService<UserEntity, UserCommand, UserQuery
   public static final String WRITE_SCOPE = "white-rabbit_users:write";
 
   private final UserFullTextQueryService fullTextQueryService;
+  private final GroupRepository groupRepository;
+  private final JournalRepository journalRepository;
 
-  protected UserService(UserRepository repository, UserFullTextQueryService fullTextQueryService) {
+  protected UserService(
+      UserRepository repository,
+      UserFullTextQueryService fullTextQueryService,
+      GroupRepository groupRepository,
+      JournalRepository journalRepository) {
     super(
         repository,
         repository,
         Map.of("name", new SortableField<>(QUserEntity.userEntity.name, UserEntity::getName)));
     this.fullTextQueryService = fullTextQueryService;
+    this.groupRepository = groupRepository;
+    this.journalRepository = journalRepository;
   }
 
   @Override
@@ -174,6 +187,33 @@ public class UserService extends WriteService<UserEntity, UserCommand, UserQuery
     if (isInvalidRole(user, entity.getRole())) {
       throw CoreError.NoPermission.write(entityType(), entity.getId().toString());
     }
+
+    final var groups =
+        this.groupRepository.findAll(
+            QGroupEntity.groupEntity
+                .admins
+                .contains(entity)
+                .or(QGroupEntity.groupEntity.members.contains(entity)));
+    groups.forEach(
+        group -> {
+          group.getAdmins().remove(entity);
+          group.getMembers().remove(entity);
+        });
+    this.groupRepository.saveAll(groups);
+
+    final var accessItem = new AccessItemValue(entity.getId(), AccessItemValue.Type.USER);
+    final var journals =
+        this.journalRepository.findAll(
+            QJournalEntity.journalEntity
+                .admins
+                .contains(accessItem)
+                .or(QJournalEntity.journalEntity.members.contains(accessItem)));
+    journals.forEach(
+        journal -> {
+          journal.getAdmins().remove(accessItem);
+          journal.getMembers().remove(accessItem);
+        });
+    this.journalRepository.saveAll(journals);
 
     this.repository.delete(entity);
   }

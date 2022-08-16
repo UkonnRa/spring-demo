@@ -1,7 +1,9 @@
 mutation createUser($targetId: ID, $name: String!, $role: Role, $authIds: [AuthIdInput!]) {
   createUser(targetId: $targetId, name: $name, role: $role, authIds: $authIds) {
     id
+    version
     name
+    role
     authIds {
       provider
       tokenValue

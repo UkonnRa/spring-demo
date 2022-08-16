@@ -39,11 +39,11 @@ public sealed interface Task<S extends TestSuite, I extends TaskInput, R>
 
   sealed interface Write<S extends TestSuite, I extends TaskInput.Write, R> extends Task<S, I, R>
       permits Write.HandleCommand, Write.HandleCommands {
-    record HandleCommand<S extends TestSuite, E, C extends Command>(
+    record HandleCommand<S extends TestSuite, C extends Command, D>(
         String name,
         Function<S, TaskInput.Write.HandleCommand<C>> input,
-        Consumer<CheckerInput<TaskInput.Write.HandleCommand<C>, Optional<E>>> checker)
-        implements Write<S, TaskInput.Write.HandleCommand<C>, Optional<E>> {}
+        Consumer<CheckerInput<TaskInput.Write.HandleCommand<C>, Optional<D>>> checker)
+        implements Write<S, TaskInput.Write.HandleCommand<C>, Optional<D>> {}
 
     record HandleCommands<S extends TestSuite, C extends Command, D>(
         String name,
