@@ -7,13 +7,14 @@ import com.ukonnra.whiterabbit.core.query.Query;
 import com.ukonnra.whiterabbit.core.query.TextQuery;
 import java.util.UUID;
 import lombok.Builder;
+import lombok.With;
 import org.springframework.lang.Nullable;
 
 @Builder
 public record AccountQuery(
     @JsonProperty(ExternalQuery.FullText.TYPE) @Nullable ExternalQuery.FullText fullText,
     @Nullable IdQuery id,
-    @Nullable UUID journal,
+    @With @Nullable UUID journal,
     @Nullable TextQuery name,
     @Nullable String description,
     @Nullable AccountType type,

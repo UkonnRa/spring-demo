@@ -7,7 +7,7 @@ import java.util.Optional;
 import org.springframework.lang.Nullable;
 
 public record FindPageInput(
-    String query,
+    @Nullable String query,
     List<GraphQlOrder> sort,
     @Nullable Integer first,
     @Nullable String after,

@@ -1,0 +1,26 @@
+query findAccounts($query: String!, $sort: [Order!]!, $first: NonNegativeInt, $after: String, $last: NonNegativeInt, $before: String, $offset: NonNegativeInt) {
+  accounts(query: $query, sort: $sort, first: $first, after: $after, last: $last, before: $before, offset: $offset) {
+    pageInfo {
+      hasPreviousPage
+      hasNextPage
+      startCursor
+      endCursor
+    }
+    edges {
+      cursor
+      node {
+        id
+        version
+        journal {
+          id
+        }
+        name
+        description
+        type
+        strategy
+        unit
+        archived
+      }
+    }
+  }
+}

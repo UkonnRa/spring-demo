@@ -1,0 +1,31 @@
+query findJournal($query: String!) {
+  journal(query: $query) {
+    id
+    version
+    name
+    description
+    tags
+    unit
+    archived
+    admins {
+      ... on User {
+        __typename
+        id
+      }
+      ... on Group {
+        __typename
+        id
+      }
+    }
+    members {
+      ... on User {
+        __typename
+        id
+      }
+      ... on Group {
+        __typename
+        id
+      }
+    }
+  }
+}

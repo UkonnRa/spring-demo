@@ -17,10 +17,6 @@ public record UserQuery(
     @Nullable RoleValue role,
     @Nullable List<String> authIdProviders)
     implements Query {
-  public UserQuery() {
-    this(null, null, null, null);
-  }
-
   public UserQuery(final Collection<UUID> ids) {
     this(IdQuery.of(ids).orElse(null), null, null, null);
   }

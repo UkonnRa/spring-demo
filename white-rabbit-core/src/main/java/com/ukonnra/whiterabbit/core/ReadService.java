@@ -93,10 +93,16 @@ public abstract class ReadService<E, Q extends Query, D> {
   public Optional<E> findOne(final Q query) {
     final var user = this.getAuthUser();
     this.checkReadable();
-
     return this.doFindAll(user, this.parseQuery(query), Sort.unsorted(), Pagination.DEFAULT)
         .stream()
         .findFirst();
+  }
+
+  @Transactional(readOnly = true)
+  public Optional<E> findOne(final UUID id) {
+    final var user = this.getAuthUser();
+    this.checkReadable();
+    return this.repository.findById(id).filter(result -> this.isReadable(user, result));
   }
 
   @Transactional(readOnly = true)

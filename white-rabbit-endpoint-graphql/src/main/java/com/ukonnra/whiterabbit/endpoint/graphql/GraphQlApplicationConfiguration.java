@@ -1,7 +1,10 @@
 package com.ukonnra.whiterabbit.endpoint.graphql;
 
 import com.ukonnra.whiterabbit.core.CoreConfiguration;
-import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
+import com.ukonnra.whiterabbit.core.domain.journal.AccessItemValue;
+import com.ukonnra.whiterabbit.endpoint.graphql.controller.GroupController;
+import com.ukonnra.whiterabbit.endpoint.graphql.controller.JournalController;
+import com.ukonnra.whiterabbit.endpoint.graphql.controller.UserController;
 import graphql.scalars.ExtendedScalars;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -11,7 +14,6 @@ import org.springframework.graphql.execution.RuntimeWiringConfigurer;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.reactive.config.EnableWebFlux;
 
@@ -21,21 +23,28 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 @ComponentScan
 @Import(CoreConfiguration.class)
 public class GraphQlApplicationConfiguration {
-  private final ReactiveJwtAuthenticationConverter jwtConverter =
-      new ReactiveJwtAuthenticationConverter();
-  private final UserRepository userRepository;
-
-  public GraphQlApplicationConfiguration(UserRepository userRepository) {
-    this.userRepository = userRepository;
-  }
-
   @Bean
   public RuntimeWiringConfigurer runtimeWiringConfigurer() {
     return wb ->
         wb.scalar(ExtendedScalars.Date)
             .scalar(ExtendedScalars.Json)
             .scalar(ExtendedScalars.NonNegativeInt)
-            .scalar(ExtendedScalars.GraphQLBigDecimal);
+            .scalar(ExtendedScalars.GraphQLBigDecimal)
+            .type(
+                JournalController.TYPE_ACCESS_ITEM,
+                builder ->
+                    builder.typeResolver(
+                        env -> {
+                          if (env.getObject() instanceof AccessItemValue item) {
+                            final var type =
+                                switch (item.getItemType()) {
+                                  case USER -> UserController.TYPE;
+                                  case GROUP -> GroupController.TYPE;
+                                };
+                            return env.getSchema().getObjectType(type);
+                          }
+                          return null;
+                        }));
   }
 
   @Bean

@@ -32,8 +32,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Controller
 @Slf4j
 @Transactional
-@SchemaMapping(typeName = "Group")
+@SchemaMapping(typeName = GroupController.TYPE)
 public class GroupController {
+  public static final String TYPE = "Group";
   private final UserService userService;
   private final GroupService groupService;
   private final GroupRepository groupRepository;
@@ -116,7 +117,7 @@ public class GroupController {
   @SchemaMapping
   public List<UserEntity.Dto> admins(
       @Arguments FindAllInput<UserQuery> input, final GroupEntity.Dto group) {
-    final var query = input.parsedQuery(this.objectMapper).orElse(new UserQuery());
+    final var query = input.parsedQuery(this.objectMapper).orElse(UserQuery.builder().build());
     return this.userService
         .findAll(
             input.parsedSort(),
@@ -130,7 +131,7 @@ public class GroupController {
   @SchemaMapping
   public List<UserEntity.Dto> members(
       @Arguments FindAllInput<UserQuery> input, final GroupEntity.Dto group) {
-    final var query = input.parsedQuery(this.objectMapper).orElse(new UserQuery());
+    final var query = input.parsedQuery(this.objectMapper).orElse(UserQuery.builder().build());
     return this.userService
         .findAll(
             input.parsedSort(),

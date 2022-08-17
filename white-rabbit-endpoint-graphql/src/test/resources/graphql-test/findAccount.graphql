@@ -1,0 +1,15 @@
+query findAccount($query: String!) {
+  account(query: $query) {
+    id
+    version
+    journal {
+      id
+    }
+    name
+    description
+    type
+    strategy
+    unit
+    archived
+  }
+}

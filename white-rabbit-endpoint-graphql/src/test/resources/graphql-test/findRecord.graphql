@@ -1,0 +1,22 @@
+query findRecord($query: String!) {
+  record(query: $query) {
+    id
+    version
+    journal {
+      id
+    }
+    name
+    description
+    type
+    date
+    tags
+    items {
+      account {
+        id
+      }
+      amount
+      price
+    }
+    isValid
+  }
+}

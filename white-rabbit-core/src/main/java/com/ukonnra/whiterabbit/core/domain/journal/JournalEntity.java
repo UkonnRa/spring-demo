@@ -10,6 +10,7 @@ import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
@@ -45,7 +46,7 @@ public class JournalEntity extends AbstractEntity<JournalEntity.Dto> {
   @Column(nullable = false)
   private String description;
 
-  @ElementCollection
+  @ElementCollection(fetch = FetchType.EAGER)
   @Size(max = TAG_MAX_LENGTH)
   @CollectionTable(
       name = "journal_tags",
@@ -63,7 +64,7 @@ public class JournalEntity extends AbstractEntity<JournalEntity.Dto> {
   @Column(nullable = false)
   private boolean archived;
 
-  @ElementCollection
+  @ElementCollection(fetch = FetchType.EAGER)
   @Size(max = ACCESS_MAX_LENGTH)
   @CollectionTable(
       name = "journal_admins",
@@ -71,7 +72,7 @@ public class JournalEntity extends AbstractEntity<JournalEntity.Dto> {
   @Builder.Default
   private Set<AccessItemValue> admins = new HashSet<>();
 
-  @ElementCollection
+  @ElementCollection(fetch = FetchType.EAGER)
   @Size(max = ACCESS_MAX_LENGTH)
   @CollectionTable(
       name = "journal_members",

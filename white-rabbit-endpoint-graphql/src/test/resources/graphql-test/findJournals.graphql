@@ -1,0 +1,42 @@
+query findJournals($query: String!, $sort: [Order!]!, $first: NonNegativeInt, $after: String, $last: NonNegativeInt, $before: String, $offset: NonNegativeInt) {
+  journals(query: $query, sort: $sort, first: $first, after: $after, last: $last, before: $before, offset: $offset) {
+    pageInfo {
+      hasPreviousPage
+      hasNextPage
+      startCursor
+      endCursor
+    }
+    edges {
+      cursor
+      node {
+        id
+        version
+        name
+        description
+        tags
+        unit
+        archived
+        admins {
+          ... on User {
+            __typename
+            id
+          }
+          ... on Group {
+            __typename
+            id
+          }
+        }
+        members {
+          ... on User {
+            __typename
+            id
+          }
+          ... on Group {
+            __typename
+            id
+          }
+        }
+      }
+    }
+  }
+}

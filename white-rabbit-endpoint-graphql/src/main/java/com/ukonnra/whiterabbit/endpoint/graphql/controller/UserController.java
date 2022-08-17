@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ukonnra.whiterabbit.core.domain.user.UserCommand;
 import com.ukonnra.whiterabbit.core.domain.user.UserEntity;
 import com.ukonnra.whiterabbit.core.domain.user.UserQuery;
-import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
 import com.ukonnra.whiterabbit.core.domain.user.UserService;
 import com.ukonnra.whiterabbit.endpoint.graphql.model.FindPageInput;
 import com.ukonnra.whiterabbit.endpoint.graphql.model.GraphQlOrder;
@@ -20,20 +19,20 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.Arguments;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 
 @Controller
 @Slf4j
 @Transactional
+@SchemaMapping(typeName = UserController.TYPE)
 public class UserController {
-  private final UserRepository userRepository;
+  public static final String TYPE = "User";
   private final UserService userService;
   private final ObjectMapper objectMapper;
 
-  public UserController(
-      UserRepository userRepository, UserService userService, ObjectMapper objectMapper) {
-    this.userRepository = userRepository;
+  public UserController(UserService userService, ObjectMapper objectMapper) {
     this.userService = userService;
     this.objectMapper = objectMapper;
   }
@@ -49,11 +48,13 @@ public class UserController {
   @QueryMapping
   public GraphQlPage<UserEntity.Dto> users(@Arguments final FindPageInput input)
       throws JsonProcessingException {
+    final var query =
+        input.query() == null
+            ? UserQuery.builder().build()
+            : this.objectMapper.readValue(input.query(), UserQuery.class);
     return GraphQlPage.of(
         this.userService.findPage(
-            input.pagination(),
-            GraphQlOrder.parseToModel(input.sort()),
-            this.objectMapper.readValue(input.query(), UserQuery.class)));
+            input.pagination(), GraphQlOrder.parseToModel(input.sort()), query));
   }
 
   @MutationMapping

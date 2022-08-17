@@ -15,6 +15,7 @@ import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -64,7 +65,7 @@ public class RecordEntity extends AbstractEntity<RecordEntity.Dto> {
   @Column(nullable = false)
   private LocalDate date;
 
-  @ElementCollection
+  @ElementCollection(fetch = FetchType.EAGER)
   @Size(max = TAG_MAX_LENGTH)
   @CollectionTable(
       name = "record_tags",
@@ -72,7 +73,7 @@ public class RecordEntity extends AbstractEntity<RecordEntity.Dto> {
   @Column(name = "tag")
   private Set<@Length(min = TAG_ITEM_MIN_LENGTH, max = TAG_ITEM_MAX_LENGTH) String> tags;
 
-  @ElementCollection
+  @ElementCollection(fetch = FetchType.EAGER)
   @Size(min = ITEM_MIN_LENGTH, max = ITEM_MAX_LENGTH)
   @CollectionTable(
       name = "record_items",

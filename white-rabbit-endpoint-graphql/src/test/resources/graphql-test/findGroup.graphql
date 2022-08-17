@@ -1,0 +1,14 @@
+query findGroup($query: String!) {
+  group(query: $query) {
+    id
+    version
+    name
+    description
+    admins {
+      id
+    }
+    members {
+      id
+    }
+  }
+}

@@ -1,0 +1,25 @@
+query findGroups($query: String!, $sort: [Order!]!, $first: NonNegativeInt, $after: String, $last: NonNegativeInt, $before: String, $offset: NonNegativeInt) {
+  groups(query: $query, sort: $sort, first: $first, after: $after, last: $last, before: $before, offset: $offset) {
+    pageInfo {
+      hasPreviousPage
+      hasNextPage
+      startCursor
+      endCursor
+    }
+    edges {
+      cursor
+      node {
+        id
+        version
+        name
+        description
+        admins {
+          id
+        }
+        members {
+          id
+        }
+      }
+    }
+  }
+}

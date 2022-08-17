@@ -13,6 +13,26 @@ type Journal {
 
   isAdmin: Boolean!
   isWriteable: Boolean!
+
+  accounts(
+    query: String
+    sort: [Order!]!
+    first: NonNegativeInt
+    after: String
+    last: NonNegativeInt
+    before: String
+    offset: NonNegativeInt
+  ): AccountConnection!
+
+  records(
+    query: String
+    sort: [Order!]!
+    first: NonNegativeInt
+    after: String
+    last: NonNegativeInt
+    before: String
+    offset: NonNegativeInt
+  ): RecordConnection!
 }
 
 union AccessItem = User | Group

@@ -54,7 +54,7 @@ type Query {
     offset: NonNegativeInt
   ): JournalConnection!
 
-  account(query: String!): Journal
+  account(query: String!): Account
   accounts(
     query: String!
     sort: [Order!]!
