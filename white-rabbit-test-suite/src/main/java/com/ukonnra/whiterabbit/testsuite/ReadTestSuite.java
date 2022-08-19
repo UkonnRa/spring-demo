@@ -8,6 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 public abstract class ReadTestSuite<S extends ReadTestSuite<S, E, Q, D>, E, Q extends Query, D>
     extends TestSuite {
   private final ReadTaskHandler<S, E, Q, D> taskHandler;
@@ -22,7 +23,6 @@ public abstract class ReadTestSuite<S extends ReadTestSuite<S, E, Q, D>, E, Q ex
     this.dataGenerator = dataGenerator;
   }
 
-  @Transactional
   @ParameterizedTest
   @MethodSource("generateTasks")
   public void runTasks(final Task.Read<S, TaskInput.Read, ?> task) {

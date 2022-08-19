@@ -19,7 +19,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureHttpGraphQlTester;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
@@ -33,7 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration(
     classes = {TestSuiteApplicationConfiguration.class, GraphQlApplicationConfiguration.class})
 @Transactional
-@AutoConfigureWebTestClient(timeout = "36000")
 public class RecordReadTest extends RecordReadTestSuite {
   private static RecordItemValue.Dto toDto(final Map<String, Object> rawItem) {
     return new RecordItemValue.Dto(

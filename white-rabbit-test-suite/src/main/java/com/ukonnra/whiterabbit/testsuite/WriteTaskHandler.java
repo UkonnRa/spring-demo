@@ -6,7 +6,9 @@ import com.ukonnra.whiterabbit.core.WriteService;
 import com.ukonnra.whiterabbit.core.query.Query;
 import com.ukonnra.whiterabbit.testsuite.task.Task;
 import com.ukonnra.whiterabbit.testsuite.task.TaskInput;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 public abstract class WriteTaskHandler<
     S extends WriteTestSuite<S, E, C, Q, D>,
     E extends AbstractEntity<D>,

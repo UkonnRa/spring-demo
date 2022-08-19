@@ -1,12 +1,13 @@
 plugins {
-  id("org.springframework.boot") version "2.7.2"
+  id("org.springframework.boot") version "2.7.3"
 }
 
 dependencies {
   implementation(project(":white-rabbit-core"))
 
   runtimeOnly("com.h2database:h2")
-  implementation("org.springframework.boot:spring-boot-starter-webflux")
+  implementation("org.springframework.boot:spring-boot-starter-web")
+  runtimeOnly("org.springframework.boot:spring-boot-starter-undertow")
   implementation("org.springframework.boot:spring-boot-starter-graphql")
   implementation("org.springframework.boot:spring-boot-starter-websocket")
   implementation("com.graphql-java:graphql-java-extended-scalars:18.1")
@@ -19,4 +20,5 @@ dependencies {
   testImplementation(project(":white-rabbit-test-suite"))
   testImplementation("org.springframework.graphql:spring-graphql-test")
   testImplementation("org.springframework.security:spring-security-test")
+  testImplementation("org.springframework:spring-webflux")
 }

@@ -10,6 +10,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 public abstract class WriteTestSuite<
         S extends WriteTestSuite<S, E, C, Q, D>,
         E extends AbstractEntity<D>,
@@ -30,7 +31,6 @@ public abstract class WriteTestSuite<
     this.dataGenerator = dataGenerator;
   }
 
-  @Transactional
   @ParameterizedTest
   @MethodSource("generateTasks")
   public void runTasks(final Task.Write<S, TaskInput.Write, ?> task) {

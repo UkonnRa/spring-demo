@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ukonnra.whiterabbit.core.domain.group.GroupCommand;
 import com.ukonnra.whiterabbit.core.domain.group.GroupEntity;
 import com.ukonnra.whiterabbit.core.domain.group.GroupQuery;
-import com.ukonnra.whiterabbit.core.domain.group.GroupRepository;
 import com.ukonnra.whiterabbit.core.domain.group.GroupService;
 import com.ukonnra.whiterabbit.core.domain.user.UserEntity;
 import com.ukonnra.whiterabbit.core.domain.user.UserQuery;
@@ -37,17 +36,12 @@ public class GroupController {
   public static final String TYPE = "Group";
   private final UserService userService;
   private final GroupService groupService;
-  private final GroupRepository groupRepository;
   private final ObjectMapper objectMapper;
 
   public GroupController(
-      UserService userService,
-      GroupService groupService,
-      GroupRepository groupRepository,
-      ObjectMapper objectMapper) {
+      UserService userService, GroupService groupService, ObjectMapper objectMapper) {
     this.userService = userService;
     this.groupService = groupService;
-    this.groupRepository = groupRepository;
     this.objectMapper = objectMapper;
   }
 
@@ -100,8 +94,8 @@ public class GroupController {
 
   @SchemaMapping
   public boolean isWriteable(final GroupEntity.Dto group) {
-    return this.groupRepository
-        .findById(group.id())
+    return this.groupService
+        .findOne(group.id())
         .map(
             g -> {
               try {

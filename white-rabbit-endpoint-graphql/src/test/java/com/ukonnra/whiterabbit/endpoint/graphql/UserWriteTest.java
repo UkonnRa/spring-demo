@@ -101,7 +101,7 @@ public class UserWriteTest extends UserWriteTestSuite {
 
                   @Override
                   public Optional<UserEntity.Dto> parseResponse(GraphQlTester.Response response) {
-                    response.path(GRAPHQL_DELETE).valueIsNull();
+                    response.path(GRAPHQL_DELETE).pathDoesNotExist();
                     return Optional.empty();
                   }
                 }),

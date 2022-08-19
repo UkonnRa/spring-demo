@@ -4,7 +4,9 @@ import com.ukonnra.whiterabbit.core.ReadService;
 import com.ukonnra.whiterabbit.core.query.Query;
 import com.ukonnra.whiterabbit.testsuite.task.Task;
 import com.ukonnra.whiterabbit.testsuite.task.TaskInput;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 public abstract class ReadTaskHandler<S extends ReadTestSuite<S, E, Q, D>, E, Q extends Query, D> {
   protected final ReadService<E, Q, D> service;
 

@@ -3,18 +3,18 @@ package com.ukonnra.whiterabbit.endpoint.graphql.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ukonnra.whiterabbit.core.AuthUser;
 import com.ukonnra.whiterabbit.core.domain.account.AccountEntity;
 import com.ukonnra.whiterabbit.core.domain.account.AccountQuery;
 import com.ukonnra.whiterabbit.core.domain.account.AccountService;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalCommand;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalEntity;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalQuery;
-import com.ukonnra.whiterabbit.core.domain.journal.JournalRepository;
 import com.ukonnra.whiterabbit.core.domain.journal.JournalService;
 import com.ukonnra.whiterabbit.core.domain.record.RecordEntity;
 import com.ukonnra.whiterabbit.core.domain.record.RecordQuery;
 import com.ukonnra.whiterabbit.core.domain.record.RecordService;
+import com.ukonnra.whiterabbit.core.domain.user.QUserEntity;
+import com.ukonnra.whiterabbit.core.domain.user.UserRepository;
 import com.ukonnra.whiterabbit.endpoint.graphql.model.FindPageInput;
 import com.ukonnra.whiterabbit.endpoint.graphql.model.GraphQlOrder;
 import com.ukonnra.whiterabbit.endpoint.graphql.model.GraphQlPage;
@@ -28,7 +28,9 @@ import org.springframework.graphql.data.method.annotation.Arguments;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,22 +43,22 @@ public class JournalController {
   public static final String TYPE_ACCESS_ITEM = "AccessItem";
 
   private final JournalService journalService;
-  private final JournalRepository journalRepository;
   private final ObjectMapper objectMapper;
   private final AccountService accountService;
   private final RecordService recordService;
+  private final UserRepository userRepository;
 
   public JournalController(
       JournalService journalService,
-      JournalRepository journalRepository,
       ObjectMapper objectMapper,
       AccountService accountService,
-      RecordService recordService) {
+      RecordService recordService,
+      UserRepository userRepository) {
     this.journalService = journalService;
-    this.journalRepository = journalRepository;
     this.objectMapper = objectMapper;
     this.accountService = accountService;
     this.recordService = recordService;
+    this.userRepository = userRepository;
   }
 
   @QueryMapping
@@ -106,15 +108,17 @@ public class JournalController {
 
   @MutationMapping
   public List<Optional<JournalEntity.Dto>> handleJournalCommands(
+      @AuthenticationPrincipal Authentication authentication,
       @Argument("commands") final List<Object> commands) {
+    SecurityContextHolder.getContext().setAuthentication(authentication);
     return this.journalService.handleAll(
         this.objectMapper.convertValue(commands, new TypeReference<>() {}));
   }
 
   @SchemaMapping
   public boolean isWriteable(final JournalEntity.Dto journal) {
-    return this.journalRepository
-        .findById(journal.id())
+    return this.journalService
+        .findOne(journal.id())
         .map(
             g -> {
               try {
@@ -129,13 +133,16 @@ public class JournalController {
 
   @SchemaMapping
   public boolean isAdmin(
-      @AuthenticationPrincipal AuthUser authUser, final JournalEntity.Dto journal) {
-    return this.journalRepository
-        .findById(journal.id())
+      @AuthenticationPrincipal Authentication authentication, final JournalEntity.Dto journal) {
+    final var authUser =
+        this.userRepository.findOne(
+            QUserEntity.userEntity.authIds.any().tokenValue.eq(authentication.getName()));
+    return this.journalService
+        .findOne(journal.id())
         .flatMap(
             j ->
-                Optional.ofNullable(authUser.user())
-                    .map(user -> this.journalService.isContainingUser(j.getAdmins(), user.getId())))
+                authUser.map(
+                    user -> this.journalService.isContainingUser(j.getAdmins(), user.getId())))
         .orElse(false);
   }
 

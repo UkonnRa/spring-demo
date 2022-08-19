@@ -94,7 +94,9 @@ public class DataGenerator {
               final var authIds =
                   providers.stream()
                       .limit(3)
-                      .map(provider -> new AuthIdValue(provider, UUID.randomUUID().toString()))
+                      .map(
+                          provider ->
+                              new AuthIdValue(provider, String.format("%s-%s", name, provider)))
                       .collect(Collectors.toSet());
               return new UserEntity(name, role, authIds);
             })
@@ -247,12 +249,9 @@ public class DataGenerator {
     final var providers = new ArrayList<>(this.generateUnique(() -> FAKER.commerce().vendor(), 5));
     final var usernameStore = new HashSet<String>();
 
-    final var owners =
-        this.generateUsers(usernameStore, RoleValue.OWNER, providers, RANDOM.nextInt(3, 5));
-    final var admins =
-        this.generateUsers(usernameStore, RoleValue.ADMIN, providers, RANDOM.nextInt(5, 8));
-    final var normals =
-        this.generateUsers(usernameStore, RoleValue.USER, providers, RANDOM.nextInt(13, 21));
+    final var owners = this.generateUsers(usernameStore, RoleValue.OWNER, providers, 5);
+    final var admins = this.generateUsers(usernameStore, RoleValue.ADMIN, providers, 8);
+    final var normals = this.generateUsers(usernameStore, RoleValue.USER, providers, 21);
     final var specificUsers =
         List.of(
             // TODO: the cleanup function after tests is not working

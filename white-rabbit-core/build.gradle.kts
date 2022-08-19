@@ -1,7 +1,7 @@
 plugins {
   id("java-library")
 
-  id("org.springframework.boot") version "2.7.2" apply false
+  id("org.springframework.boot") version "2.7.3" apply false
 }
 
 dependencyManagement {

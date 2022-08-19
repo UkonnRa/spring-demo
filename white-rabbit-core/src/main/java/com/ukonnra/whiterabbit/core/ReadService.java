@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -27,7 +26,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.util.Streamable;
 import org.springframework.lang.Nullable;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -89,7 +87,7 @@ public abstract class ReadService<E, Q extends Query, D> {
     return this.repository.findById(Utils.decodeCursor(cursor));
   }
 
-  @Transactional(readOnly = true)
+  @Transactional
   public Optional<E> findOne(final Q query) {
     final var user = this.getAuthUser();
     this.checkReadable();
@@ -98,14 +96,14 @@ public abstract class ReadService<E, Q extends Query, D> {
         .findFirst();
   }
 
-  @Transactional(readOnly = true)
+  @Transactional
   public Optional<E> findOne(final UUID id) {
     final var user = this.getAuthUser();
     this.checkReadable();
     return this.repository.findById(id).filter(result -> this.isReadable(user, result));
   }
 
-  @Transactional(readOnly = true)
+  @Transactional
   public Page<E> findPage(final Pagination pagination, Sort sort, final Q query) {
     final var user = this.getAuthUser();
     this.checkReadable();
@@ -155,7 +153,7 @@ public abstract class ReadService<E, Q extends Query, D> {
         pageItems);
   }
 
-  @Transactional(readOnly = true)
+  @Transactional
   public List<E> findAll(final Sort sort, int size, final Q query) {
     final var user = this.getAuthUser();
     this.checkReadable();
@@ -217,18 +215,7 @@ public abstract class ReadService<E, Q extends Query, D> {
   }
 
   protected Optional<Authentication> getAuthentication() {
-    return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
-        .or(
-            () -> {
-              try {
-                return Optional.ofNullable(
-                        ReactiveSecurityContextHolder.getContext().toFuture().get())
-                    .flatMap(ctx -> Optional.ofNullable(ctx.getAuthentication()));
-              } catch (InterruptedException | ExecutionException e) {
-                log.error("Interrupted when getting from SecurityContext: {}", e.getMessage(), e);
-                return Optional.empty();
-              }
-            });
+    return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication());
   }
 
   protected @Nullable UserEntity getAuthUser() {

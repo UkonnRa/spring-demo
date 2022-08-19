@@ -5,8 +5,8 @@ plugins {
   id("jacoco")
   id("jacoco-report-aggregation")
 
-  id("com.github.spotbugs") version "5.0.9"
-  id("com.diffplug.spotless") version "6.9.1"
+  id("com.github.spotbugs") version "5.0.10"
+  id("com.diffplug.spotless") version "6.10.0"
   id("com.github.ben-manes.versions") version "0.42.0"
   id("io.freefair.lombok") version "6.5.0.3"
 
@@ -88,8 +88,6 @@ subprojects {
 
     implementation {
       exclude(module = "spring-boot-starter-tomcat")
-      exclude(module = "jsr305")
-      exclude(group = "javax.servlet")
     }
   }
 
