@@ -9,8 +9,8 @@ spring:
   graphql:
     graphiql:
       enabled: true
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://white-rabbit-dev.authing.cn/oidc
+#  security:
+#    oauth2:
+#      resourceserver:
+#        jwt:
+#          issuer-uri: https://white-rabbit-dev.authing.cn/oidc

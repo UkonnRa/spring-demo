@@ -6,12 +6,16 @@
   },
   "private": true,
   "devDependencies": {
-    "@commitlint/cli": "^17.0.3",
-    "@commitlint/config-conventional": "^17.0.3",
+    "@commitlint/cli": "^17.1.2",
+    "@commitlint/config-conventional": "^17.1.0",
     "commitizen": "^4.2.5",
-    "commitlint": "^17.0.3",
+    "commitlint": "^17.1.2",
     "cz-conventional-changelog": "^3.3.0",
     "husky": "^8.0.1"
+  },
+  "scripts": {
+    "prepare": "husky install",
+    "upgrade": "yarn upgrade-interactive && ./gradlew dependencyUpdates"
   },
   "config": {
     "commitizen": {
