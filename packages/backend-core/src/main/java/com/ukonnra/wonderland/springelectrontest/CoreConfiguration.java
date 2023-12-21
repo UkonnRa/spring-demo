@@ -1,9 +1,10 @@
 package com.ukonnra.wonderland.springelectrontest;
 
 import com.ukonnra.wonderland.springelectrontest.entity.AbstractEntity;
-import com.ukonnra.wonderland.springelectrontest.entity.User;
-import com.ukonnra.wonderland.springelectrontest.repository.UserRepository;
+import com.ukonnra.wonderland.springelectrontest.entity.Journal;
+import com.ukonnra.wonderland.springelectrontest.repository.JournalRepository;
 import java.util.List;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -23,10 +24,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 @Slf4j
 public class CoreConfiguration {
-  private final UserRepository userRepository;
+  private final JournalRepository journalRepository;
 
-  public CoreConfiguration(UserRepository userRepository) {
-    this.userRepository = userRepository;
+  public CoreConfiguration(JournalRepository journalRepository) {
+    this.journalRepository = journalRepository;
   }
 
   @Bean
@@ -36,9 +37,13 @@ public class CoreConfiguration {
 
   @EventListener(ApplicationReadyEvent.class)
   void onApplicationReady() {
-    final var users = List.of(new User("Name 1", 1), new User("Name 2", 2), new User("Name 3", 3));
+    final var journals =
+        List.of(
+            new Journal("Name 1", "Desc 1", "Unit 1", Set.of("Tag 1", "Tag 2")),
+            new Journal("Name 2", "Desc 2", "Unit 2", Set.of("Tag 2", "Tag 4")),
+            new Journal("Name 3", "Desc 3", "Unit 3", Set.of("Tag 1", "Tag 4")));
 
-    final var results = this.userRepository.saveAllAndFlush(users);
+    final var results = this.journalRepository.saveAllAndFlush(journals);
     for (final var result : results) {
       log.info("After Saving: {}", result);
     }

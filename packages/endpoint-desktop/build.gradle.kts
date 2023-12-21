@@ -8,5 +8,5 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.hibernate.orm:hibernate-community-dialects")
 
-  runtimeOnly("org.xerial:sqlite-jdbc")
+  runtimeOnly("com.h2database:h2")
 }

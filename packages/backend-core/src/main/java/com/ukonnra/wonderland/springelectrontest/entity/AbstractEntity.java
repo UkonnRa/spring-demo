@@ -20,6 +20,10 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 @ToString
 @MappedSuperclass
 public abstract class AbstractEntity extends AbstractPersistable<UUID> {
+  protected static final int MIN_NAMELY = 2;
+  protected static final int MAX_NAMELY = 127;
+  protected static final int MAX_LONG_TEXT = 1023;
+
   @CreatedDate private Instant createdDate = Instant.now();
 
   @Version private int version;
