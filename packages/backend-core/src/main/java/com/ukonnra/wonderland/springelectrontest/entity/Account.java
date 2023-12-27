@@ -86,17 +86,17 @@ public class Account extends AbstractEntity {
   }
 
   @NoArgsConstructor
-  @ToString(callSuper = true)
+  @ToString
   public static class Query implements Specification<Account> {
-    @Getter private Set<UUID> id = Set.of();
+    @Setter private Set<UUID> id = Set.of();
 
-    @Getter private Set<UUID> journal = Set.of();
+    @Setter private Set<UUID> journal = Set.of();
 
     private Set<String> name = Set.of();
 
     private Set<String> unit = Set.of();
 
-    @Getter private Set<Type> type = Set.of();
+    @Setter private Set<Type> type = Set.of();
 
     private Set<String> tag = Set.of();
 
