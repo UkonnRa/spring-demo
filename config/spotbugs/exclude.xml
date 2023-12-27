@@ -6,4 +6,7 @@
   <Match>
     <Bug code="EI,EI2,NP,RCN,PI"/>
   </Match>
+  <Match>
+    <Class name="~.*_$"/>
+  </Match>
 </FindBugsFilter>

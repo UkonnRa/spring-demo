@@ -26,6 +26,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.annotation.Transactional;
 
 @Configuration
 @EntityScan(basePackageClasses = AbstractEntity.class)
@@ -53,7 +54,8 @@ public class CoreConfiguration {
   }
 
   @EventListener(ApplicationReadyEvent.class)
-  void onApplicationReady() {
+  @Transactional
+  public void onApplicationReady() {
     var journals =
         List.of(
             new Journal("Name 1", "Desc 1", "Unit 1", Set.of("Tag 1", "Tag 2")),
@@ -61,8 +63,12 @@ public class CoreConfiguration {
             new Journal("Name 3", "Desc 3", "Unit 3", Set.of("Tag 1", "Tag 4")));
 
     journals = this.journalRepository.saveAllAndFlush(journals);
-    for (final var journal : journals) {
-      log.info("Journal: {}", journal);
+
+    final var journalQuery = new Journal.Query();
+    journalQuery.setTag(Set.of("Tag 4", "Tag 2"));
+    journalQuery.setFullText(" 2");
+    for (final var journal : this.journalRepository.findAll(journalQuery)) {
+      log.info("Journal: {}", journal.getName());
     }
 
     var accounts =
@@ -84,7 +90,12 @@ public class CoreConfiguration {
             .toList();
     accounts = this.accountRepository.saveAllAndFlush(accounts);
 
-    for (final var account : accounts) {
+    final var accountQuery = new Account.Query();
+    accountQuery.setTag(Set.of("Tag 4", "Tag 2"));
+    accountQuery.setUnit(Set.of("Unit 1"));
+    accountQuery.setFullText(Account.Type.ASSET.name());
+
+    for (final var account : this.accountRepository.findAll(accountQuery)) {
       log.info("Account: {}", account);
     }
 

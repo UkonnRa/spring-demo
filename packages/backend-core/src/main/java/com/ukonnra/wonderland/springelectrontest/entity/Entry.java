@@ -36,6 +36,7 @@ public class Entry extends AbstractEntity {
   public static final String TYPE = "entries";
 
   @ManyToOne(optional = false)
+  @ToString.Exclude
   private Journal journal;
 
   @Column(nullable = false, length = MAX_NAMELY)
@@ -95,6 +96,7 @@ public class Entry extends AbstractEntity {
   @Embeddable
   public static class Item {
     @ManyToOne(optional = false)
+    @ToString.Exclude
     private Account account;
 
     @Column(nullable = false)
