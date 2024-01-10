@@ -8,7 +8,7 @@ plugins {
   id("checkstyle")
   id("jacoco")
 
-  id("com.github.spotbugs") version "6.0.5"
+  id("com.github.spotbugs") version "6.0.6"
   id("com.diffplug.spotless") version "6.23.3"
   id("com.github.ben-manes.versions") version "0.50.0"
   id("io.freefair.lombok") version "8.4"
@@ -59,7 +59,7 @@ subprojects {
   }
 
   checkstyle {
-    toolVersion = "10.12.5"
+    toolVersion = "10.12.7"
   }
 
   tasks.withType<Checkstyle> {
