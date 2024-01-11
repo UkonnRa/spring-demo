@@ -24,6 +24,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.lang.Nullable;
 
 @Getter
 @Setter
@@ -75,22 +76,50 @@ public class Journal extends AbstractEntity {
 
     private String fullText = "";
 
-    public void setName(Collection<String> name) {
+    public void setId(@Nullable Collection<UUID> id) {
+      if (id == null) {
+        this.id = Set.of();
+        return;
+      }
+      this.id = new HashSet<>(id);
+    }
+
+    public void setName(@Nullable Collection<String> name) {
+      if (name == null) {
+        this.name = Set.of();
+        return;
+      }
+
       this.name =
           name.stream().map(String::trim).filter(Strings::isNotEmpty).collect(Collectors.toSet());
     }
 
-    public void setUnit(Collection<String> unit) {
+    public void setUnit(@Nullable Collection<String> unit) {
+      if (unit == null) {
+        this.unit = Set.of();
+        return;
+      }
+
       this.unit =
           unit.stream().map(String::trim).filter(Strings::isNotEmpty).collect(Collectors.toSet());
     }
 
-    public void setTag(Collection<String> tag) {
+    public void setTag(@Nullable Collection<String> tag) {
+      if (tag == null) {
+        this.tag = Set.of();
+        return;
+      }
+
       this.tag =
           tag.stream().map(String::trim).filter(Strings::isNotEmpty).collect(Collectors.toSet());
     }
 
-    public void setFullText(String fullText) {
+    public void setFullText(@Nullable String fullText) {
+      if (fullText == null) {
+        this.fullText = "";
+        return;
+      }
+
       this.fullText = fullText.trim().toLowerCase();
     }
 

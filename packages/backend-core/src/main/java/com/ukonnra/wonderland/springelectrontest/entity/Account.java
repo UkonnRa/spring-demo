@@ -13,8 +13,10 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.validation.constraints.Size;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -39,6 +41,7 @@ import org.springframework.data.jpa.domain.Specification;
       @Index(columnList = "type"),
     })
 public class Account extends AbstractEntity {
+  public static final String NAME_SPLITERATOR = "::";
   public static final String TYPE = "accounts";
 
   @ManyToOne(optional = false)
@@ -70,11 +73,35 @@ public class Account extends AbstractEntity {
   public Account(
       Journal journal, String name, String description, String unit, Type type, Set<String> tags) {
     this.journal = journal;
-    this.name = name;
+    this.setName(name);
     this.description = description;
     this.unit = unit;
     this.type = type;
     this.tags = new HashSet<>(tags);
+  }
+
+  public void setName(final String value) {
+    this.name =
+        Arrays.stream(value.split(NAME_SPLITERATOR))
+            .map(String::trim)
+            .filter(item -> !item.isEmpty())
+            .collect(Collectors.joining(NAME_SPLITERATOR));
+  }
+
+  public List<String> getNamePrefixes() {
+    final var results = new ArrayList<String>();
+
+    final var value = new StringBuilder();
+    for (final var subName : this.name.split(NAME_SPLITERATOR)) {
+      if (!value.isEmpty()) {
+        value.append(NAME_SPLITERATOR);
+      }
+      value.append(subName);
+
+      results.add(value.toString());
+    }
+
+    return results;
   }
 
   public enum Type {

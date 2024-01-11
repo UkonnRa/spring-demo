@@ -1,4 +1,3 @@
-import com.diffplug.gradle.spotless.SpotlessTask
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 

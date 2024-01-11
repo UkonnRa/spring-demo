@@ -4,9 +4,11 @@ plugins {
 }
 
 dependencies {
+  implementation(platform("org.springframework.shell:spring-shell-dependencies:3.2.0"))
+
   implementation(project(":backend-core"))
-  implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.hibernate.orm:hibernate-community-dialects")
+  implementation("org.springframework.shell:spring-shell-starter")
 
   runtimeOnly("com.h2database:h2")
 }
