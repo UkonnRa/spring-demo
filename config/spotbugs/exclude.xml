@@ -4,9 +4,12 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="https://github.com/spotbugs/filter/3.0.0 https://raw.githubusercontent.com/spotbugs/spotbugs/master/spotbugs/etc/findbugsfilter.xsd">
   <Match>
-    <Bug code="EI,EI2,NP,RCN,PI"/>
+    <Bug code="EI,EI2,NP"/>
   </Match>
   <Match>
-    <Class name="~.*_$"/>
+    <Or>
+      <Class name="~.*\.*_$"/>
+      <Package name="~.*\.proto"/>
+    </Or>
   </Match>
 </FindBugsFilter>

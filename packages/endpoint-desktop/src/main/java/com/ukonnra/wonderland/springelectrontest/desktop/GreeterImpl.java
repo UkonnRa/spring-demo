@@ -1,66 +1,58 @@
 package com.ukonnra.wonderland.springelectrontest.desktop;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ukonnra.wonderland.springelectrontest.desktop.proto.GreeterGrpc;
+import com.ukonnra.wonderland.springelectrontest.desktop.proto.HelloReply;
+import com.ukonnra.wonderland.springelectrontest.desktop.proto.HelloRequest;
 import com.ukonnra.wonderland.springelectrontest.entity.Account;
 import com.ukonnra.wonderland.springelectrontest.entity.Entry;
 import com.ukonnra.wonderland.springelectrontest.entity.Journal;
 import com.ukonnra.wonderland.springelectrontest.service.AccountService;
 import com.ukonnra.wonderland.springelectrontest.service.EntryService;
 import com.ukonnra.wonderland.springelectrontest.service.JournalService;
+import io.grpc.stub.StreamObserver;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.shell.command.annotation.Command;
-import org.springframework.shell.command.annotation.Option;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Command(group = "Journal Commands", command = "journals")
+@Service
 @Slf4j
-public class JournalController {
+public class GreeterImpl extends GreeterGrpc.GreeterImplBase {
   private final JournalService journalService;
   private final AccountService accountService;
   private final EntryService entryService;
-  private final ObjectMapper objectMapper;
 
-  public JournalController(
-      JournalService journalService,
-      AccountService accountService,
-      EntryService entryService,
-      ObjectMapper objectMapper) {
+  public GreeterImpl(
+      JournalService journalService, AccountService accountService, EntryService entryService) {
     this.journalService = journalService;
     this.accountService = accountService;
     this.entryService = entryService;
-    this.objectMapper = objectMapper;
   }
 
-  @Command(command = "find-all")
+  @Override
   @Transactional
-  public String findAll(
-      @Option(shortNames = 'i') Set<UUID> id,
-      @Option(shortNames = 'n') Set<String> name,
-      @Option(shortNames = 'u') Set<String> unit,
-      @Option(shortNames = 'f') String fullText)
-      throws JsonProcessingException {
-    final var query = new Journal.Query();
-    query.setId(id);
-    query.setName(name);
-    query.setUnit(unit);
-    query.setFullText(fullText);
-    final var results = this.journalService.findAll(query);
-    return this.objectMapper.writeValueAsString(this.journalService.convert(results));
+  public void sayHello(HelloRequest request, StreamObserver<HelloReply> responseObserver) {
+    final var name = request.getName();
+    log.info("Requester name: {}", name);
+
+    final var responseMsg = String.format("Hello, %s!", name);
+    log.info("  Response: {}", responseMsg);
+    final var reply = HelloReply.newBuilder().setMessage(responseMsg).build();
+
+    this.init();
+
+    responseObserver.onNext(reply);
+    responseObserver.onCompleted();
   }
 
-  @Command(command = "init", description = "Init Data")
-  @Transactional
-  public void init() {
+  private void init() {
     var journals =
         List.of(
             new Journal("Name 1", "Desc 1", "Unit 1", Set.of("Tag 1", "Tag 2")),
