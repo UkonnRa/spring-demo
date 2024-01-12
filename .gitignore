@@ -45,4 +45,8 @@ out/
 !.yarn/versions
 node_modules
 
+### Vue ###
+dist
+
+### Database ###
 *.db
