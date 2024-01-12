@@ -47,6 +47,7 @@ node_modules
 
 ### Vue ###
 dist
+coverage
 
 ### Database ###
 *.db

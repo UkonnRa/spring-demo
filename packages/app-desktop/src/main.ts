@@ -1,4 +1,4 @@
-import { app, BrowserWindow, type WebContents } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 import path from "path";
 import { execFile, ChildProcess, type ExecFileOptions } from "child_process";
 import squirrelCheck from "@/squirrel-check";
@@ -16,7 +16,6 @@ if (squirrelCheck()) {
 }
 
 let javaProcess: ChildProcess;
-let webContents: WebContents;
 
 async function getFreePort() {
   return new Promise<number | undefined>((res) => {
@@ -48,24 +47,21 @@ const createWindow = async () => {
   } else {
     mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
 
-    const exePath = path.resolve(app.getAppPath(), "../nativeCompile/endpoint-desktop");
+    const exePath = path.resolve(app.getAppPath(), "../endpoint-desktop");
 
-    webContents = mainWindow.webContents;
     javaProcess = execFile(exePath, {
       env: {
         WHITE_RABBIT_PORT: port,
         WHITE_RABBIT_PASSWORD: "server-password user-password",
       },
     } as ExecFileOptions);
-    javaProcess.stdout?.on("data", (data) => {
-      webContents.send("java-log/stdout", data);
-    });
-    javaProcess.stderr?.on("data", (data) => {
-      webContents.send("java-log/stderr", data);
-    });
   }
 
   mainWindow.webContents.openDevTools();
+
+  ipcMain.handle("get-port", () => {
+    return port;
+  });
 };
 
 app.on("ready", createWindow);

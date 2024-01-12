@@ -8,7 +8,7 @@ plugins {
   id("jacoco")
 
   id("com.github.spotbugs") version "6.0.6"
-  id("com.diffplug.spotless") version "6.23.3"
+  id("com.diffplug.spotless") version "6.24.0"
   id("com.github.ben-manes.versions") version "0.50.0"
   id("io.freefair.lombok") version "8.4"
   id("org.sonarqube") version "4.4.1.3373"
