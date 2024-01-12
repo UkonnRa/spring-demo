@@ -1,5 +1,8 @@
-const path = require("path");
 const packageInfo = require("./package.json");
+const fs = require("node:fs");
+const path = require("node:path");
+
+const nativeDir = path.resolve(__dirname, "../endpoint-desktop/build/native/nativeCompile");
 
 /**
  * @type {import('@electron-forge/shared-types').ForgeConfig}
@@ -8,7 +11,13 @@ module.exports = {
   packagerConfig: {
     asar: true,
     name: packageInfo.name,
-    extraResource: [path.resolve(__dirname, "../endpoint-desktop/build/native/nativeCompile")],
+    extraResource: fs.readdirSync(nativeDir)
+      .filter(file => {
+        const isArgsFile = file.startsWith("native-image") && file.endsWith(".args");
+        const isBgvFile = file.endsWith(".bgv");
+        return !isArgsFile && !isBgvFile;
+      })
+      .map(file => path.resolve(nativeDir, file)),
   },
   rebuildConfig: {},
   makers: [

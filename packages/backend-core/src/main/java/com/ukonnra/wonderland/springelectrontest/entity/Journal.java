@@ -66,7 +66,7 @@ public class Journal extends AbstractEntity {
   @NoArgsConstructor
   @ToString
   public static class Query implements Specification<Journal> {
-    @Setter private Set<UUID> id = Set.of();
+    private Set<UUID> id = Set.of();
 
     private Set<String> name = Set.of();
 
