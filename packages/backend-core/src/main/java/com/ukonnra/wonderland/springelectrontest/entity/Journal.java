@@ -1,5 +1,6 @@
 package com.ukonnra.wonderland.springelectrontest.entity;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -24,7 +25,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.lang.Nullable;
 
 @Getter
 @Setter
@@ -54,7 +54,8 @@ public class Journal extends AbstractEntity {
       name = "journal_tags",
       indexes = @Index(unique = true, columnList = "journal_id, tag"))
   @Column(name = "tag", nullable = false, length = MAX_NAMELY)
-  private Set<String> tags;
+  @Size(max = MAX_TAGS)
+  private Set<@Size(min = MIN_NAMELY, max = MAX_NAMELY) String> tags;
 
   public Journal(String name, String description, String unit, Set<String> tags) {
     this.name = name;

@@ -1,58 +1,67 @@
-package com.ukonnra.wonderland.springelectrontest.desktop;
+package com.ukonnra.wonderland.springelectrontest.hateoas;
 
-import com.ukonnra.wonderland.springelectrontest.desktop.proto.GreeterGrpc;
-import com.ukonnra.wonderland.springelectrontest.desktop.proto.HelloReply;
-import com.ukonnra.wonderland.springelectrontest.desktop.proto.HelloRequest;
 import com.ukonnra.wonderland.springelectrontest.entity.Account;
 import com.ukonnra.wonderland.springelectrontest.entity.Entry;
 import com.ukonnra.wonderland.springelectrontest.entity.Journal;
 import com.ukonnra.wonderland.springelectrontest.service.AccountService;
 import com.ukonnra.wonderland.springelectrontest.service.EntryService;
 import com.ukonnra.wonderland.springelectrontest.service.JournalService;
-import io.grpc.stub.StreamObserver;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Service
+@RestController
+@RequestMapping(
+    value = "/journals",
+    consumes = MediaType.APPLICATION_JSON_VALUE,
+    produces = MediaType.APPLICATION_JSON_VALUE)
+@Tag(name = "Journals", description = "Journal related API")
 @Slf4j
-public class GreeterImpl extends GreeterGrpc.GreeterImplBase {
+public class JournalController {
   private final JournalService journalService;
   private final AccountService accountService;
   private final EntryService entryService;
 
-  public GreeterImpl(
+  public JournalController(
       JournalService journalService, AccountService accountService, EntryService entryService) {
     this.journalService = journalService;
     this.accountService = accountService;
     this.entryService = entryService;
   }
 
-  @Override
-  @Transactional
-  public void sayHello(HelloRequest request, StreamObserver<HelloReply> responseObserver) {
-    final var name = request.getName();
-    log.info("Requester name: {}", name);
-
-    final var responseMsg = String.format("Hello, %s!", name);
-    log.info("  Response: {}", responseMsg);
-    final var reply = HelloReply.newBuilder().setMessage(responseMsg).build();
-
-    this.init();
-
-    responseObserver.onNext(reply);
-    responseObserver.onCompleted();
+  @GetMapping
+  public CollectionModel<JournalModel> findAll() {
+    final var entities = this.journalService.findAll(new Journal.Query());
+    return CollectionModel.of(entities.stream().map(JournalModel::new).toList());
   }
 
-  private void init() {
+  @GetMapping("/{id}")
+  public ResponseEntity<EntityModel<JournalModel>> findById(@PathVariable(name = "id") UUID id) {
+    final var query = new Journal.Query();
+    query.setId(Set.of(id));
+    return ResponseEntity.of(
+        this.journalService.findOne(query).map(JournalModel::new).map(EntityModel::of));
+  }
+
+  @PostMapping("/init")
+  public void init() {
     var journals =
         List.of(
             new Journal("Name 1", "Desc 1", "Unit 1", Set.of("Tag 1", "Tag 2")),

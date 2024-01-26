@@ -1,9 +1,9 @@
 package com.ukonnra.wonderland.springelectrontest.desktop;
 
-import com.ukonnra.wonderland.springelectrontest.CoreConfiguration;
+import com.ukonnra.wonderland.springelectrontest.hateoas.HateoasConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import(CoreConfiguration.class)
+@Import({HateoasConfiguration.class})
 public class EndpointDesktopConfiguration {}

@@ -21,9 +21,10 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 @ToString
 @MappedSuperclass
 public abstract class AbstractEntity extends AbstractPersistable<UUID> {
-  protected static final int MIN_NAMELY = 2;
-  protected static final int MAX_NAMELY = 127;
-  protected static final int MAX_LONG_TEXT = 1023;
+  public static final int MIN_NAMELY = 2;
+  public static final int MAX_NAMELY = 127;
+  public static final int MAX_LONG_TEXT = 1023;
+  public static final int MAX_TAGS = 15;
 
   @Column(nullable = false)
   @CreatedDate
