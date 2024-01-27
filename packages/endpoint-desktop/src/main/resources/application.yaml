@@ -12,3 +12,8 @@ spring:
       enabled: true
 server:
   port: ${WHITE_RABBIT_PORT:8080}
+springdoc:
+  default-produces-media-type: application/json
+app:
+  hateoas:
+    domain-name: localhost

@@ -1,5 +1,6 @@
 package com.ukonnra.wonderland.springelectrontest.entity;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -115,36 +116,76 @@ public class Account extends AbstractEntity {
   @NoArgsConstructor
   @ToString
   public static class Query implements Specification<Account> {
-    @Setter private Set<UUID> id = Set.of();
+    private Set<UUID> id = Set.of();
 
-    @Setter private Set<UUID> journal = Set.of();
+    private Set<UUID> journal = Set.of();
 
     private Set<String> name = Set.of();
 
     private Set<String> unit = Set.of();
 
-    @Setter private Set<Type> type = Set.of();
+    private Set<Type> type = Set.of();
 
     private Set<String> tag = Set.of();
 
     private String fullText = "";
 
-    public void setName(Collection<String> name) {
+    public void setId(@Nullable Collection<UUID> id) {
+      if (id == null) {
+        this.id = Set.of();
+        return;
+      }
+      this.id = new HashSet<>(id);
+    }
+
+    public void setJournal(@Nullable Collection<UUID> journal) {
+      if (journal == null) {
+        this.journal = Set.of();
+        return;
+      }
+      this.journal = new HashSet<>(journal);
+    }
+
+    public void setName(@Nullable Collection<String> name) {
+      if (name == null) {
+        this.name = Set.of();
+        return;
+      }
       this.name =
           name.stream().map(String::trim).filter(Strings::isNotEmpty).collect(Collectors.toSet());
     }
 
-    public void setUnit(Collection<String> unit) {
+    public void setUnit(@Nullable Collection<String> unit) {
+      if (unit == null) {
+        this.unit = Set.of();
+        return;
+      }
       this.unit =
           unit.stream().map(String::trim).filter(Strings::isNotEmpty).collect(Collectors.toSet());
     }
 
-    public void setTag(Collection<String> tag) {
+    public void setType(@Nullable Collection<Type> type) {
+      if (type == null) {
+        this.type = Set.of();
+        return;
+      }
+      this.type = new HashSet<>(type);
+    }
+
+    public void setTag(@Nullable Collection<String> tag) {
+      if (tag == null) {
+        this.tag = Set.of();
+        return;
+      }
       this.tag =
           tag.stream().map(String::trim).filter(Strings::isNotEmpty).collect(Collectors.toSet());
     }
 
-    public void setFullText(String fullText) {
+    public void setFullText(@Nullable String fullText) {
+      if (fullText == null) {
+        this.fullText = "";
+        return;
+      }
       this.fullText = fullText.trim().toLowerCase();
     }
 
@@ -161,7 +202,7 @@ public class Account extends AbstractEntity {
       }
 
       if (!journal.isEmpty()) {
-        predicates.add(root.get(Account_.journal).in(journal));
+        predicates.add(root.get(Account_.journal).get(Journal_.id).in(journal));
       }
 
       if (!name.isEmpty()) {

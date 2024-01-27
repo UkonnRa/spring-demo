@@ -120,11 +120,11 @@ public class Entry extends AbstractEntity {
   @NoArgsConstructor
   @ToString
   public static class Query implements Specification<Entry> {
-    @Setter private Set<UUID> id = Set.of();
+    private Set<UUID> id = Set.of();
 
-    @Setter private Set<UUID> journal = Set.of();
+    private Set<UUID> journal = Set.of();
 
-    @Setter private Set<UUID> account = Set.of();
+    private Set<UUID> account = Set.of();
 
     private Set<String> name = Set.of();
 
@@ -138,17 +138,59 @@ public class Entry extends AbstractEntity {
 
     private String fullText = "";
 
-    public void setName(Collection<String> name) {
+    public void setId(@Nullable Collection<UUID> id) {
+      if (id == null) {
+        this.id = Set.of();
+        return;
+      }
+
+      this.id = new HashSet<>(id);
+    }
+
+    public void setJournal(@Nullable Collection<UUID> journal) {
+      if (journal == null) {
+        this.journal = Set.of();
+        return;
+      }
+
+      this.journal = new HashSet<>(journal);
+    }
+
+    public void setAccount(@Nullable Collection<UUID> account) {
+      if (account == null) {
+        this.account = Set.of();
+        return;
+      }
+
+      this.account = new HashSet<>(account);
+    }
+
+    public void setName(@Nullable Collection<String> name) {
+      if (name == null) {
+        this.name = Set.of();
+        return;
+      }
+
       this.name =
           name.stream().map(String::trim).filter(Strings::isNotEmpty).collect(Collectors.toSet());
     }
 
-    public void setTag(Collection<String> tag) {
+    public void setTag(@Nullable Collection<String> tag) {
+      if (tag == null) {
+        this.tag = Set.of();
+        return;
+      }
+
       this.tag =
           tag.stream().map(String::trim).filter(Strings::isNotEmpty).collect(Collectors.toSet());
     }
 
-    public void setFullText(String fullText) {
+    public void setFullText(@Nullable String fullText) {
+      if (fullText == null) {
+        this.fullText = "";
+        return;
+      }
+
       this.fullText = fullText.trim().toLowerCase();
     }
 
@@ -166,7 +208,7 @@ public class Entry extends AbstractEntity {
       }
 
       if (!journal.isEmpty()) {
-        predicates.add(root.get(Entry_.journal).in(journal));
+        predicates.add(root.get(Entry_.journal).get(Journal_.id).in(journal));
       }
 
       if (!account.isEmpty()) {

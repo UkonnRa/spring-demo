@@ -1,7 +1,7 @@
 {
   "name": "white-rabbit-app-desktop",
   "version": "0.1.0",
-  "packageManager": "yarn@4.0.2",
+  "packageManager": "yarn@4.1.0",
   "main": ".vite/build/main.js",
   "author": "Ukonn Ra <ukonnra@outlook.com>",
   "description": "Wonderland WhiteRabbit Desktop",

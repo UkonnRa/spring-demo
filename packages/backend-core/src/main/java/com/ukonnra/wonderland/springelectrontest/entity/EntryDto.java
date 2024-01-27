@@ -1,5 +1,6 @@
 package com.ukonnra.wonderland.springelectrontest.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.math.BigDecimal;
@@ -24,10 +25,13 @@ public sealed interface EntryDto {
 
   int version();
 
+  UUID journalId();
+
   String name();
 
   String description();
 
+  @JsonProperty
   Entry.Type type();
 
   LocalDate date();
@@ -40,6 +44,7 @@ public sealed interface EntryDto {
       UUID id,
       Instant createdDate,
       int version,
+      UUID journalId,
       String name,
       String description,
       LocalDate date,
@@ -52,6 +57,7 @@ public sealed interface EntryDto {
           Objects.requireNonNull(entry.getId()),
           entry.getCreatedDate(),
           entry.getVersion(),
+          Objects.requireNonNull(entry.getJournal().getId()),
           entry.getName(),
           entry.getDescription(),
           entry.getDate(),
@@ -61,6 +67,7 @@ public sealed interface EntryDto {
     }
 
     @Override
+    @JsonProperty
     public Entry.Type type() {
       return Entry.Type.RECORD;
     }
@@ -70,6 +77,7 @@ public sealed interface EntryDto {
       UUID id,
       Instant createdDate,
       int version,
+      UUID journalId,
       String name,
       String description,
       LocalDate date,
@@ -82,6 +90,7 @@ public sealed interface EntryDto {
           Objects.requireNonNull(entry.getId()),
           entry.getCreatedDate(),
           entry.getVersion(),
+          Objects.requireNonNull(entry.getJournal().getId()),
           entry.getName(),
           entry.getDescription(),
           entry.getDate(),
@@ -91,6 +100,7 @@ public sealed interface EntryDto {
     }
 
     @Override
+    @JsonProperty
     public Entry.Type type() {
       return Entry.Type.CHECK;
     }
