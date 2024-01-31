@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain } from "electron";
-import path from "path";
-import { execFile, ChildProcess, type ExecFileOptions } from "child_process";
+import path from "node:path";
+import { execFile, ChildProcess, type ExecFileOptions } from "node:child_process";
 import squirrelCheck from "@/squirrel-check";
 import net from "net";
 
@@ -40,11 +40,12 @@ const createWindow = async () => {
     },
   });
 
-  const port = await getFreePort();
+  let port: number | undefined = 8080;
 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
+    port = await getFreePort();
     mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
 
     const exePath = path.resolve(app.getAppPath(), "../endpoint-desktop");
@@ -52,7 +53,7 @@ const createWindow = async () => {
     javaProcess = execFile(exePath, {
       env: {
         WHITE_RABBIT_PORT: port,
-        WHITE_RABBIT_PASSWORD: "server-password user-password",
+        WHITE_RABBIT_PASSWORD: "password password",
       },
     } as ExecFileOptions);
   }

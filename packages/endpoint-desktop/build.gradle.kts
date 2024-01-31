@@ -10,6 +10,10 @@ dependencies {
   runtimeOnly("com.h2database:h2")
 }
 
+springBoot {
+  buildInfo()
+}
+
 graalvmNative {
   binaries.all {
     // Fix unknown error for: `Error: Classes that should be initialized at run time got initialized during image building`

@@ -8,9 +8,15 @@ import java.util.Set;
 import java.util.UUID;
 
 public record HierarchyReport(
-    UUID journalId, String prefix, String unit, Map<UUID, BigDecimal> values) {
-  public record Query(Set<UUID> journal, @Nullable LocalDate start, @Nullable LocalDate end) {
+    String id, UUID journalId, String prefix, String unit, Map<UUID, BigDecimal> values) {
+
+  public record Query(
+      Set<String> id, Set<UUID> journal, @Nullable LocalDate start, @Nullable LocalDate end) {
     public Query {
+      if (id == null) {
+        id = Set.of();
+      }
+
       if (journal == null) {
         journal = Set.of();
       }

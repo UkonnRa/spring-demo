@@ -289,6 +289,7 @@ const columnDefs = computed((): ColDef<Row>[] => {
       cellRenderer: EntryTableActionsCellRenderer,
       cellRendererParams: (params: ICellRendererParams<Row>) => {
         return {
+          // eslint-disable-next-line sonarjs/cognitive-complexity
           toggleDeleted: () => {
             if (params.node && params.data) {
               params.data.deleted = !params.data.deleted;

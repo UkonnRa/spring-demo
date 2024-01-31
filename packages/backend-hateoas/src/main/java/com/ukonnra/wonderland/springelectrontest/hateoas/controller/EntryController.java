@@ -1,9 +1,10 @@
-package com.ukonnra.wonderland.springelectrontest.hateoas;
+package com.ukonnra.wonderland.springelectrontest.hateoas.controller;
 
-import com.ukonnra.wonderland.springelectrontest.entity.AccountDto;
 import com.ukonnra.wonderland.springelectrontest.entity.Entry;
 import com.ukonnra.wonderland.springelectrontest.entity.EntryDto;
-import com.ukonnra.wonderland.springelectrontest.entity.JournalDto;
+import com.ukonnra.wonderland.springelectrontest.hateoas.model.AccountModel;
+import com.ukonnra.wonderland.springelectrontest.hateoas.model.EntryModel;
+import com.ukonnra.wonderland.springelectrontest.hateoas.model.JournalModel;
 import com.ukonnra.wonderland.springelectrontest.service.AccountService;
 import com.ukonnra.wonderland.springelectrontest.service.EntryService;
 import com.ukonnra.wonderland.springelectrontest.service.JournalService;
@@ -15,7 +16,6 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -51,12 +51,18 @@ public class EntryController {
     this.entryService = entryService;
   }
 
-  EntityModel<EntryDto> toEntityModel(EntryDto dto) {
-    return EntityModel.of(dto, Link.of("/entries/" + dto.id()));
+  @Nullable
+  EntryModel toEntityModel(EntryDto dto, Link... links) {
+    if (dto instanceof EntryDto.Record item) {
+      return new EntryModel.Record(item, links);
+    } else if (dto instanceof EntryDto.Check check) {
+      return new EntryModel.Check(check, links);
+    }
+    return null;
   }
 
   @GetMapping
-  public CollectionModel<EntityModel<EntryDto>> findAll(
+  public CollectionModel<EntryModel> findAll(
       @RequestParam(name = "filter[id]", required = false)
           @Parameter(description = "Filter Entries by IDs")
           Set<UUID> id,
@@ -106,7 +112,7 @@ public class EntryController {
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<EntityModel<EntryDto>> findById(@PathVariable(name = "id") UUID id) {
+  public ResponseEntity<EntryModel> findById(@PathVariable(name = "id") UUID id) {
     final var query = new Entry.Query();
     query.setId(Set.of(id));
 
@@ -115,8 +121,7 @@ public class EntryController {
   }
 
   @GetMapping("/{id}/accounts")
-  public CollectionModel<EntityModel<AccountDto>> findRelatedAccounts(
-      @PathVariable(name = "id") UUID id) {
+  public CollectionModel<AccountModel> findRelatedAccounts(@PathVariable(name = "id") UUID id) {
     final var query = new Entry.Query();
     query.setId(Set.of(id));
 
@@ -127,12 +132,12 @@ public class EntryController {
             .toList();
     final var dtos = this.accountService.convert(accounts);
 
-    return CollectionModel.of(dtos.stream().map(this.accountController::toEntityModel).toList());
+    return CollectionModel.of(dtos.stream().map(this.accountController::toEntityModel).toList())
+        .add(Link.of(String.format("/entries/%s/accounts", id)));
   }
 
   @GetMapping("/{id}/journal")
-  public ResponseEntity<EntityModel<JournalDto>> findRelatedJournal(
-      @PathVariable(name = "id") UUID id) {
+  public ResponseEntity<JournalModel> findRelatedJournal(@PathVariable(name = "id") UUID id) {
     final var query = new Entry.Query();
     query.setId(Set.of(id));
 
@@ -140,6 +145,9 @@ public class EntryController {
         this.entryService
             .findOne(query)
             .flatMap(account -> this.journalService.convert(account.getJournal()))
-            .map(this.journalController::toEntityModel));
+            .map(
+                dto ->
+                    this.journalController.toEntityModel(
+                        dto, Link.of(String.format("/entries/%s/journal", id)))));
   }
 }

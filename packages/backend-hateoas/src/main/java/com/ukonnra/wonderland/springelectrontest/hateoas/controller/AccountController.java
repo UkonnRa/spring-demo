@@ -1,8 +1,9 @@
-package com.ukonnra.wonderland.springelectrontest.hateoas;
+package com.ukonnra.wonderland.springelectrontest.hateoas.controller;
 
 import com.ukonnra.wonderland.springelectrontest.entity.Account;
 import com.ukonnra.wonderland.springelectrontest.entity.AccountDto;
-import com.ukonnra.wonderland.springelectrontest.entity.JournalDto;
+import com.ukonnra.wonderland.springelectrontest.hateoas.model.AccountModel;
+import com.ukonnra.wonderland.springelectrontest.hateoas.model.JournalModel;
 import com.ukonnra.wonderland.springelectrontest.service.AccountService;
 import com.ukonnra.wonderland.springelectrontest.service.JournalService;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -11,7 +12,6 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -41,12 +41,12 @@ public class AccountController {
     this.accountService = accountService;
   }
 
-  EntityModel<AccountDto> toEntityModel(AccountDto dto) {
-    return EntityModel.of(dto, Link.of("/accounts/" + dto.id()));
+  AccountModel toEntityModel(AccountDto dto, Link... links) {
+    return new AccountModel(dto, links);
   }
 
   @GetMapping
-  public CollectionModel<EntityModel<AccountDto>> findAll(
+  public CollectionModel<AccountModel> findAll(
       @RequestParam(name = "filter[id]", required = false)
           @Parameter(description = "Filter Accounts by IDs")
           Set<UUID> id,
@@ -85,7 +85,7 @@ public class AccountController {
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<EntityModel<AccountDto>> findById(@PathVariable(name = "id") UUID id) {
+  public ResponseEntity<AccountModel> findById(@PathVariable(name = "id") UUID id) {
     final var query = new Account.Query();
     query.setId(Set.of(id));
 
@@ -94,8 +94,7 @@ public class AccountController {
   }
 
   @GetMapping("/{id}/journal")
-  public ResponseEntity<EntityModel<JournalDto>> findRelatedJournalById(
-      @PathVariable(name = "id") UUID id) {
+  public ResponseEntity<JournalModel> findRelatedJournalById(@PathVariable(name = "id") UUID id) {
     final var query = new Account.Query();
     query.setId(Set.of(id));
 
@@ -103,6 +102,9 @@ public class AccountController {
         this.accountService
             .findOne(query)
             .flatMap(account -> this.journalService.convert(account.getJournal()))
-            .map(this.journalController::toEntityModel));
+            .map(
+                dto ->
+                    this.journalController.toEntityModel(
+                        dto, Link.of(String.format("/accounts/%s/journal", id)))));
   }
 }

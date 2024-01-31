@@ -17,3 +17,9 @@ springdoc:
 app:
   hateoas:
     domain-name: localhost
+management:
+  endpoints:
+    web:
+      cors:
+        allowed-origin-patterns: http://127.0.0.1:*,http://localhost:*
+        allowed-methods: GET

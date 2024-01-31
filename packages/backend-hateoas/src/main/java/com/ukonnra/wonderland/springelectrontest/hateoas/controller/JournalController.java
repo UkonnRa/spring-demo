@@ -1,7 +1,8 @@
-package com.ukonnra.wonderland.springelectrontest.hateoas;
+package com.ukonnra.wonderland.springelectrontest.hateoas.controller;
 
 import com.ukonnra.wonderland.springelectrontest.entity.Journal;
 import com.ukonnra.wonderland.springelectrontest.entity.JournalDto;
+import com.ukonnra.wonderland.springelectrontest.hateoas.model.JournalModel;
 import com.ukonnra.wonderland.springelectrontest.service.JournalService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -9,7 +10,6 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,12 +32,12 @@ public class JournalController {
     this.journalService = journalService;
   }
 
-  EntityModel<JournalDto> toEntityModel(JournalDto dto) {
-    return EntityModel.of(dto, Link.of("/journals/" + dto.id()));
+  JournalModel toEntityModel(JournalDto dto, Link... links) {
+    return new JournalModel(dto, links);
   }
 
   @GetMapping
-  public CollectionModel<EntityModel<JournalDto>> findAll(
+  public CollectionModel<JournalModel> findAll(
       @RequestParam(name = "filter[id]", required = false)
           @Parameter(description = "Filter Journals by IDs")
           Set<UUID> id,
@@ -68,7 +68,7 @@ public class JournalController {
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<EntityModel<JournalDto>> findById(@PathVariable(name = "id") UUID id) {
+  public ResponseEntity<JournalModel> findById(@PathVariable(name = "id") UUID id) {
     final var query = new Journal.Query();
     query.setId(Set.of(id));
 

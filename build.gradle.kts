@@ -10,16 +10,15 @@ plugins {
   id("com.github.spotbugs") version "6.0.7"
   id("com.diffplug.spotless") version "6.25.0"
   id("com.github.ben-manes.versions") version "0.51.0"
-  id("io.freefair.lombok") version "8.4"
+  id("io.freefair.lombok") version "8.6"
   id("org.sonarqube") version "4.4.1.3373"
 
   id("org.springframework.boot") version "3.2.2" apply false
   id("io.spring.dependency-management") version "1.1.4"
-  id("org.graalvm.buildtools.native") version "0.9.28" apply false
+  id("org.graalvm.buildtools.native") version "0.10.1" apply false
 }
 
 group = "com.ukonnra.wonderland"
-version = "0.1.0"
 
 java {
   sourceCompatibility = JavaVersion.VERSION_21
@@ -30,6 +29,8 @@ allprojects {
   repositories {
     mavenCentral()
   }
+
+  version = "0.1.0"
 }
 
 subprojects {
@@ -58,7 +59,7 @@ subprojects {
   }
 
   checkstyle {
-    toolVersion = "10.12.7"
+    toolVersion = "10.13.0"
   }
 
   tasks.withType<Checkstyle> {

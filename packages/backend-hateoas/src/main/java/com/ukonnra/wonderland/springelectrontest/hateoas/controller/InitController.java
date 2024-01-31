@@ -1,4 +1,4 @@
-package com.ukonnra.wonderland.springelectrontest.hateoas;
+package com.ukonnra.wonderland.springelectrontest.hateoas.controller;
 
 import com.ukonnra.wonderland.springelectrontest.entity.Account;
 import com.ukonnra.wonderland.springelectrontest.entity.Entry;
