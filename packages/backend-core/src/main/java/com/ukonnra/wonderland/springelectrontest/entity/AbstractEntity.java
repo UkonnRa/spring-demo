@@ -1,5 +1,6 @@
 package com.ukonnra.wonderland.springelectrontest.entity;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Version;
@@ -31,4 +32,9 @@ public abstract class AbstractEntity extends AbstractPersistable<UUID> {
   private Instant createdDate = Instant.now();
 
   @Version private int version;
+
+  @Override
+  public void setId(@Nullable UUID id) {
+    super.setId(id);
+  }
 }

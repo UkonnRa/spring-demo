@@ -13,4 +13,6 @@ dependencies {
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   annotationProcessor("org.projectlombok:lombok")
   annotationProcessor("org.hibernate.orm:hibernate-jpamodelgen")
+
+  testRuntimeOnly("com.h2database:h2")
 }

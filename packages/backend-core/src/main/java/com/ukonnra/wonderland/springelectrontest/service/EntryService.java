@@ -5,6 +5,7 @@ import com.ukonnra.wonderland.springelectrontest.entity.Entry;
 import com.ukonnra.wonderland.springelectrontest.entity.EntryDto;
 import com.ukonnra.wonderland.springelectrontest.entity.EntryState;
 import com.ukonnra.wonderland.springelectrontest.repository.EntryRepository;
+import jakarta.validation.Validator;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,22 +19,13 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
-public class EntryService
-    implements WriteService<Entry, Entry.Query, Object, EntryRepository, EntryDto> {
-  private final EntryRepository repository;
-  private final JournalService journalService;
-  private final AccountService accountService;
+public interface EntryService
+    extends WriteService<Entry, Entry.Query, Object, EntryRepository, EntryDto> {
 
-  public EntryService(
-      EntryRepository repository, JournalService journalService, AccountService accountService) {
-    this.repository = repository;
-    this.journalService = journalService;
-    this.accountService = accountService;
-  }
+  AccountService getAccountService();
 
   @Override
-  public List<Entry> handleCommand(Object command) {
+  default List<Entry> handleCommand(Object command) {
     return null;
   }
 
@@ -88,7 +80,7 @@ public class EntryService
 
   @Override
   @Transactional
-  public List<EntryDto> convert(Collection<Entry> entities) {
+  default List<EntryDto> convert(Collection<Entry> entities) {
     final var accountIds =
         entities.stream()
             .flatMap(e -> e.getItems().stream())
@@ -98,7 +90,7 @@ public class EntryService
     final var accountQuery = new Account.Query();
     accountQuery.setId(accountIds);
     final var accountsByJournal =
-        this.accountService.findAll(accountQuery).stream()
+        this.getAccountService().findAll(accountQuery).stream()
             .collect(
                 Collectors.groupingBy(
                     a -> Objects.requireNonNull(a.getJournal().getId()),
@@ -133,8 +125,32 @@ public class EntryService
     return results;
   }
 
-  @Override
-  public EntryRepository getRepository() {
-    return this.repository;
+  @Service
+  class Impl implements EntryService {
+
+    private final EntryRepository repository;
+    private final Validator validator;
+    private final AccountService accountService;
+
+    public Impl(EntryRepository repository, Validator validator, AccountService accountService) {
+      this.repository = repository;
+      this.validator = validator;
+      this.accountService = accountService;
+    }
+
+    @Override
+    public EntryRepository getRepository() {
+      return this.repository;
+    }
+
+    @Override
+    public Validator getValidator() {
+      return this.validator;
+    }
+
+    @Override
+    public AccountService getAccountService() {
+      return this.accountService;
+    }
   }
 }

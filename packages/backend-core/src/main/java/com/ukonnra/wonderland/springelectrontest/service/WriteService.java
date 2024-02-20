@@ -3,6 +3,7 @@ package com.ukonnra.wonderland.springelectrontest.service;
 import com.ukonnra.wonderland.springelectrontest.entity.AbstractEntity;
 import com.ukonnra.wonderland.springelectrontest.repository.Repository;
 import jakarta.annotation.Nullable;
+import jakarta.validation.Validator;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +25,8 @@ public interface WriteService<
   }
 
   R getRepository();
+
+  Validator getValidator();
 
   @Override
   default List<E> findAll(final Q query) {
