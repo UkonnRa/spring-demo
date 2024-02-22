@@ -3,8 +3,6 @@ package com.ukonnra.wonderland.springelectrontest.hateoas;
 import com.ukonnra.wonderland.springelectrontest.CoreConfiguration;
 import com.ukonnra.wonderland.springelectrontest.entity.EntryDto;
 import com.ukonnra.wonderland.springelectrontest.entity.EntryState;
-import com.ukonnra.wonderland.springelectrontest.hateoas.controller.JournalController;
-import com.ukonnra.wonderland.springelectrontest.hateoas.model.AbstractModel;
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -20,12 +18,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @Import(CoreConfiguration.class)
 @EnableConfigurationProperties(HateoasProperties.class)
-@ComponentScan(basePackageClasses = {AbstractModel.class, JournalController.class})
-public class HateoasConfiguration {
+@ComponentScan(basePackageClasses = HateoasConfiguration.class)
+public class HateoasConfiguration implements WebMvcConfigurer {
   static {
     final var converters = ModelConverters.getInstance();
 
@@ -49,6 +49,12 @@ public class HateoasConfiguration {
                 .oneOf(List.of(entryStateValidSchema, entryStateInvalidSchema)));
   }
 
+  private final HateoasQueryParamResolver queryParamResolver;
+
+  public HateoasConfiguration(HateoasQueryParamResolver queryParamResolver) {
+    this.queryParamResolver = queryParamResolver;
+  }
+
   @Bean
   public OpenAPI openapi(
       @Value("${server.port}") int port,
@@ -58,5 +64,10 @@ public class HateoasConfiguration {
         .info(new Info().title("Spring Electron Test API").version(buildProperties.getVersion()))
         .addServersItem(
             new Server().url(String.format("http://%s:%d", properties.domainName(), port)));
+  }
+
+  @Override
+  public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+    resolvers.add(this.queryParamResolver);
   }
 }

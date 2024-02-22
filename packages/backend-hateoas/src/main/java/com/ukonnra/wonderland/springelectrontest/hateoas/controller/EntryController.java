@@ -3,27 +3,30 @@ package com.ukonnra.wonderland.springelectrontest.hateoas.controller;
 import com.ukonnra.wonderland.springelectrontest.entity.Entry;
 import com.ukonnra.wonderland.springelectrontest.entity.EntryDto;
 import com.ukonnra.wonderland.springelectrontest.hateoas.model.AccountModel;
+import com.ukonnra.wonderland.springelectrontest.hateoas.model.AccountsModel;
+import com.ukonnra.wonderland.springelectrontest.hateoas.model.EntriesModel;
 import com.ukonnra.wonderland.springelectrontest.hateoas.model.EntryModel;
 import com.ukonnra.wonderland.springelectrontest.hateoas.model.JournalModel;
 import com.ukonnra.wonderland.springelectrontest.service.AccountService;
 import com.ukonnra.wonderland.springelectrontest.service.EntryService;
 import com.ukonnra.wonderland.springelectrontest.service.JournalService;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Nullable;
-import java.time.LocalDate;
+import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.hateoas.CollectionModel;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
+import org.springframework.hateoas.mediatype.hal.HalModelBuilder;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -61,79 +64,88 @@ public class EntryController {
     return null;
   }
 
+  private void loadIncluded(
+      final HalModelBuilder builder,
+      final Collection<EntryModel> models,
+      final Set<EntryArgs.Include> include) {
+    if (include.contains(EntryArgs.Include.JOURNAL)) {
+      final var journalIds =
+          models.stream().map(EntryModel::getJournalId).collect(Collectors.toSet());
+      final var journals =
+          this.journalService.convert(this.journalService.findAllByIds(journalIds));
+      final var journalModels =
+          journals.stream().map(this.journalController::toEntityModel).toList();
+      builder.embed(journalModels, JournalModel.class);
+    }
+
+    if (include.contains(EntryArgs.Include.ACCOUNTS)) {
+      final var accountIds =
+          models.stream()
+              .flatMap(model -> model.getAccountIds().stream())
+              .collect(Collectors.toSet());
+      final var accounts =
+          this.accountService.convert(this.accountService.findAllByIds(accountIds));
+      final var accountModels =
+          accounts.stream().map(this.accountController::toEntityModel).toList();
+      builder.embed(accountModels, AccountModel.class);
+    }
+  }
+
   @GetMapping
-  public CollectionModel<EntryModel> findAll(
-      @RequestParam(name = "filter[id]", required = false)
-          @Parameter(description = "Filter Entries by IDs")
-          Set<UUID> id,
-      @RequestParam(name = "filter[journal]", required = false)
-          @Parameter(description = "Filter Entries by Journal IDs")
-          Set<UUID> journal,
-      @RequestParam(name = "filter[account]", required = false)
-          @Parameter(description = "Filter Entries by Account IDs")
-          Set<UUID> account,
-      @RequestParam(name = "filter[name]", required = false)
-          @Parameter(description = "Filter Entries by names with exactly matching")
-          Set<String> name,
-      @RequestParam(name = "filter[type]", required = false)
-          @Parameter(description = "Filter Entries by Entry type")
-          @Nullable
-          Entry.Type type,
-      @RequestParam(name = "filter[start]", required = false)
-          @Parameter(description = "Filter Entries after the given date")
-          @Nullable
-          LocalDate start,
-      @RequestParam(name = "filter[end]", required = false)
-          @Parameter(description = "Filter Entries before the given date")
-          @Nullable
-          LocalDate end,
-      @RequestParam(name = "filter[tag]", required = false)
-          @Parameter(description = "Filter Entries by tags")
-          Set<String> tag,
-      @RequestParam(name = "filter[fullText]", required = false)
-          @Parameter(
-              description =
-                  "Filter Entries by full-text searching on Field 'name', 'description', 'tags'")
-          String fullText) {
+  public EntityModel<EntriesModel> findAll(@ParameterObject EntryArgs.FindAll args) {
 
     final var query = new Entry.Query();
-    query.setId(id);
-    query.setJournal(journal);
-    query.setAccount(account);
-    query.setName(name);
-    query.setType(type);
-    query.setStart(start);
-    query.setEnd(end);
-    query.setTag(tag);
-    query.setFullText(fullText);
+    query.setId(args.filter().id());
+    query.setJournal(args.filter().journal());
+    query.setAccount(args.filter().account());
+    query.setName(args.filter().name());
+    query.setType(args.filter().type());
+    query.setStart(args.filter().start());
+    query.setEnd(args.filter().end());
+    query.setTag(args.filter().tag());
+    query.setFullText(args.filter().fullText());
 
     final var dtos = this.entryService.convert(this.entryService.findAll(query));
-    return CollectionModel.of(dtos.stream().map(this::toEntityModel).toList());
+    final var models = dtos.stream().map(this::toEntityModel).toList();
+    final var builder = HalModelBuilder.halModelOf(new EntriesModel(models));
+    this.loadIncluded(builder, models, args.include());
+    return (EntityModel<EntriesModel>) builder.build();
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<EntryModel> findById(@PathVariable(name = "id") UUID id) {
+  public @Nullable EntityModel<EntryModel> findById(
+      @PathVariable(name = "id") UUID id, @ParameterObject EntryArgs.FindById args) {
     final var query = new Entry.Query();
     query.setId(Set.of(id));
 
     final var dto = this.entryService.convert(this.entryService.findOne(query));
-    return ResponseEntity.of(dto.map(this::toEntityModel));
+    final var entity = dto.map(this::toEntityModel);
+
+    if (entity.isEmpty() || args.include().isEmpty()) {
+      return entity.map(EntityModel::of).orElse(null);
+    }
+
+    final var builder = HalModelBuilder.halModelOf(entity);
+    this.loadIncluded(builder, entity.stream().toList(), args.include());
+    return (EntityModel<EntryModel>) builder.build();
   }
 
   @GetMapping("/{id}/accounts")
-  public CollectionModel<AccountModel> findRelatedAccounts(@PathVariable(name = "id") UUID id) {
+  public ResponseEntity<AccountsModel> findRelatedAccounts(@PathVariable(name = "id") UUID id) {
     final var query = new Entry.Query();
     query.setId(Set.of(id));
 
-    final var accounts =
-        this.entryService.findOne(query).stream()
-            .flatMap(entry -> entry.getItems().stream().map(Entry.Item::getAccount))
-            .distinct()
-            .toList();
+    final var entry = this.entryService.findOne(query);
+    if (entry.isEmpty()) {
+      return ResponseEntity.notFound().build();
+    }
+
+    final var accounts = entry.get().getItems().stream().map(Entry.Item::getAccount).toList();
     final var dtos = this.accountService.convert(accounts);
 
-    return CollectionModel.of(dtos.stream().map(this.accountController::toEntityModel).toList())
-        .add(Link.of(String.format("/entries/%s/accounts", id)));
+    final var models = dtos.stream().map(this.accountController::toEntityModel).toList();
+    return ResponseEntity.ok(
+        new AccountsModel(models).add(Link.of(String.format("/entries/%s/accounts", id))));
   }
 
   @GetMapping("/{id}/journal")
@@ -141,13 +153,15 @@ public class EntryController {
     final var query = new Entry.Query();
     query.setId(Set.of(id));
 
-    return ResponseEntity.of(
+    final var dto =
         this.entryService
             .findOne(query)
-            .flatMap(account -> this.journalService.convert(account.getJournal()))
-            .map(
-                dto ->
-                    this.journalController.toEntityModel(
-                        dto, Link.of(String.format("/entries/%s/journal", id)))));
+            .flatMap(account -> this.journalService.convert(account.getJournal()));
+
+    return ResponseEntity.of(
+        dto.map(
+            e ->
+                this.journalController.toEntityModel(
+                    e, Link.of(String.format("/entries/%s/journal", id)))));
   }
 }

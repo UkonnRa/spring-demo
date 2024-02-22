@@ -23,3 +23,6 @@ management:
       cors:
         allowed-origin-patterns: http://127.0.0.1:*,http://localhost:*
         allowed-methods: GET
+logging:
+  file:
+    name: endpoint-desktop.log

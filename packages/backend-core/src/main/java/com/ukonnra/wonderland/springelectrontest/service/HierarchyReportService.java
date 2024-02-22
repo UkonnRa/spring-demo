@@ -18,10 +18,12 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 public class HierarchyReportService implements ReadService<HierarchyReport, HierarchyReport.Query> {
   private final AccountService accountService;
   private final EntryService entryService;
@@ -38,8 +40,8 @@ public class HierarchyReportService implements ReadService<HierarchyReport, Hier
     try {
       final var jsonString = Base64.getUrlDecoder().decode(id.getBytes(StandardCharsets.UTF_8));
       return this.objectMapper.readValue(jsonString, PrefixIndex.class);
-
     } catch (IllegalArgumentException | IOException e) {
+      log.warn("Error when decode Report Id: {}", e.getMessage(), e);
       return null;
     }
   }
@@ -49,6 +51,7 @@ public class HierarchyReportService implements ReadService<HierarchyReport, Hier
       final var jsonString = this.objectMapper.writeValueAsString(id);
       return Base64.getUrlEncoder().encodeToString(jsonString.getBytes(StandardCharsets.UTF_8));
     } catch (JsonProcessingException e) {
+      log.warn("Error when encode Report Id: {}", e.getMessage(), e);
       return null;
     }
   }
@@ -56,6 +59,8 @@ public class HierarchyReportService implements ReadService<HierarchyReport, Hier
   @Override
   @Transactional
   public List<HierarchyReport> findAll(HierarchyReport.Query query) {
+    log.info("== Start Finding All Hierarchy Reports");
+
     final var reportIds =
         query.id().stream()
             .map(this::decodeId)
@@ -68,43 +73,50 @@ public class HierarchyReportService implements ReadService<HierarchyReport, Hier
     final var accountQuery = new Account.Query();
     accountQuery.setJournal(journalIds);
     final var accounts = this.accountService.findAll(accountQuery);
+    log.info("  Accounts: {}", accounts);
 
     final var entryQuery = new Entry.Query();
     entryQuery.setJournal(journalIds);
     entryQuery.setStart(query.start());
     entryQuery.setEnd(query.end());
     final var entries = this.entryService.findAll(entryQuery);
+    log.info("  Entries: {}", accounts);
 
-    return this.doAggregateByAccount(accounts, entries).entrySet().stream()
-        .filter(
-            e -> {
-              if (query.id().isEmpty()) {
-                return true;
-              }
-              return reportIds.contains(new PrefixIndex(e.getKey()));
-            })
-        .collect(
-            Collectors.groupingBy(
-                e -> new PrefixIndex(e.getKey()),
-                Collectors.mapping(
-                    e -> Map.entry(e.getKey().accountId(), e.getValue()), Collectors.toSet())))
-        .entrySet()
-        .stream()
-        .map(
-            e -> {
-              final var index = e.getKey();
-              final var id = this.encodeId(index);
-              if (id == null || id.isEmpty()) {
-                return null;
-              }
+    final var results =
+        this.doAggregateByAccount(accounts, entries).entrySet().stream()
+            .filter(
+                e -> {
+                  if (query.id().isEmpty()) {
+                    return true;
+                  }
+                  return reportIds.contains(new PrefixIndex(e.getKey()));
+                })
+            .collect(
+                Collectors.groupingBy(
+                    e -> new PrefixIndex(e.getKey()),
+                    Collectors.mapping(
+                        e -> Map.entry(e.getKey().accountId(), e.getValue()), Collectors.toSet())))
+            .entrySet()
+            .stream()
+            .map(
+                e -> {
+                  final var index = e.getKey();
+                  final var id = this.encodeId(index);
+                  if (id == null || id.isEmpty()) {
+                    return null;
+                  }
 
-              final var values =
-                  e.getValue().stream()
-                      .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-              return new HierarchyReport(id, index.journalId, index.prefix, index.unit, values);
-            })
-        .filter(Objects::nonNull)
-        .toList();
+                  final var values =
+                      e.getValue().stream()
+                          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                  return new HierarchyReport(id, index.journalId, index.prefix, index.unit, values);
+                })
+            .filter(Objects::nonNull)
+            .toList();
+
+    log.info("  Reports: {}", results);
+
+    return results;
   }
 
   private Map<AccountIndex, BigDecimal> doAggregateByAccount(
@@ -137,9 +149,9 @@ public class HierarchyReportService implements ReadService<HierarchyReport, Hier
     return resultsByAccount;
   }
 
-  private record AccountIndex(UUID journalId, String prefix, String unit, UUID accountId) {}
+  public record AccountIndex(UUID journalId, String prefix, String unit, UUID accountId) {}
 
-  private record PrefixIndex(UUID journalId, String prefix, String unit) {
+  public record PrefixIndex(UUID journalId, String prefix, String unit) {
     public PrefixIndex(final AccountIndex index) {
       this(index.journalId, index.prefix, index.unit);
     }

@@ -3,7 +3,7 @@ plugins {
 }
 
 object Versions {
-  const val SPRINGDOC = "2.3.0"
+  const val SPRINGDOC = "2.4.0"
 }
 
 dependencies {

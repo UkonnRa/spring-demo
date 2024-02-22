@@ -76,6 +76,7 @@ public class HierarchyReportController {
     final var query = new HierarchyReport.Query(id, journal, start, end);
 
     final var dtos = this.hierarchyReportService.findAll(query);
+    log.info("Hierarchy Reports Found: {}", dtos);
     return CollectionModel.of(dtos.stream().map(this::toEntityModel).toList());
   }
 

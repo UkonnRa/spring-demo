@@ -1,5 +1,6 @@
 package com.ukonnra.wonderland.springelectrontest.hateoas.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -10,11 +11,13 @@ import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import jakarta.annotation.Nullable;
+import jakarta.persistence.Transient;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.springframework.hateoas.Link;
@@ -33,7 +36,7 @@ import org.springframework.hateoas.server.core.Relation;
       @DiscriminatorMapping(value = "RECORD", schema = EntryModel.Record.class),
       @DiscriminatorMapping(value = "CHECK", schema = EntryModel.Check.class)
     })
-@Relation(collectionRelation = "entities")
+@Relation(collectionRelation = "entries")
 public abstract sealed class EntryModel extends AbstractModel<EntryDto, EntryModel> {
   private final UUID id;
   private final Instant createdDate;
@@ -44,6 +47,12 @@ public abstract sealed class EntryModel extends AbstractModel<EntryDto, EntryMod
   private final LocalDate date;
   private final Set<String> tags;
   private final Set<EntryDto.Item> items;
+
+  @JsonIgnore
+  @Transient
+  public Set<UUID> getAccountIds() {
+    return this.items.stream().map(EntryDto.Item::accountId).collect(Collectors.toSet());
+  }
 
   protected EntryModel(final EntryDto dto, @Nullable Link... links) {
     super(dto);
@@ -72,6 +81,7 @@ public abstract sealed class EntryModel extends AbstractModel<EntryDto, EntryMod
   @EqualsAndHashCode(callSuper = true)
   @Schema(name = "EntryModelRecord")
   @SchemaProperty(name = "type", schema = @Schema(allowableValues = "RECORD"))
+  @Relation(collectionRelation = "entries")
   public static final class Record extends EntryModel {
     private final EntryState state;
 
@@ -91,6 +101,7 @@ public abstract sealed class EntryModel extends AbstractModel<EntryDto, EntryMod
   @EqualsAndHashCode(callSuper = true)
   @Schema(name = "EntryModelCheck")
   @SchemaProperty(name = "type", schema = @Schema(allowableValues = "CHECK"))
+  @Relation(collectionRelation = "entries")
   public static final class Check extends EntryModel {
     private final Map<UUID, EntryState> state;
 

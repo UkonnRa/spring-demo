@@ -7,6 +7,8 @@ import jakarta.validation.Validator;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import org.springframework.data.jpa.domain.Specification;
 
 public interface WriteService<
@@ -31,6 +33,10 @@ public interface WriteService<
   @Override
   default List<E> findAll(final Q query) {
     return this.getRepository().findAll(query);
+  }
+
+  default List<E> findAllByIds(final Set<UUID> ids) {
+    return this.getRepository().findAllById(ids);
   }
 
   @Override

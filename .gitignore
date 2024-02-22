@@ -51,3 +51,6 @@ coverage
 
 ### Database ###
 *.db
+
+*.log
+*.log.*.gz

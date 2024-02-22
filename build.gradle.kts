@@ -7,13 +7,13 @@ plugins {
   id("checkstyle")
   id("jacoco")
 
-  id("com.github.spotbugs") version "6.0.7"
+  id("com.github.spotbugs") version "6.0.8"
   id("com.diffplug.spotless") version "6.25.0"
   id("com.github.ben-manes.versions") version "0.51.0"
   id("io.freefair.lombok") version "8.6"
   id("org.sonarqube") version "4.4.1.3373"
 
-  id("org.springframework.boot") version "3.2.2" apply false
+  id("org.springframework.boot") version "3.2.3" apply false
   id("io.spring.dependency-management") version "1.1.4"
   id("org.graalvm.buildtools.native") version "0.10.1" apply false
 }
@@ -53,13 +53,16 @@ subprojects {
     }
   }
 
+  // INFO: For Hibernate Bug: https://github.com/spring-projects/spring-boot/releases/tag/v3.2.3
+  ext["hibernate.version"] = "6.4.2.Final"
+
   dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
   }
 
   checkstyle {
-    toolVersion = "10.13.0"
+    toolVersion = "10.14.0"
   }
 
   tasks.withType<Checkstyle> {
