@@ -4,27 +4,29 @@ import com.ukonnra.wonderland.springelectrontest.entity.Account;
 import com.ukonnra.wonderland.springelectrontest.entity.HierarchyReport;
 import com.ukonnra.wonderland.springelectrontest.entity.Journal;
 import com.ukonnra.wonderland.springelectrontest.hateoas.model.AccountModel;
+import com.ukonnra.wonderland.springelectrontest.hateoas.model.AccountsModel;
 import com.ukonnra.wonderland.springelectrontest.hateoas.model.HierarchyReportModel;
+import com.ukonnra.wonderland.springelectrontest.hateoas.model.HierarchyReportsModel;
 import com.ukonnra.wonderland.springelectrontest.hateoas.model.JournalModel;
 import com.ukonnra.wonderland.springelectrontest.service.AccountService;
 import com.ukonnra.wonderland.springelectrontest.service.HierarchyReportService;
 import com.ukonnra.wonderland.springelectrontest.service.JournalService;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Nullable;
-import java.time.LocalDate;
+import java.util.Collection;
 import java.util.Set;
-import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.hateoas.CollectionModel;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
+import org.springframework.hateoas.mediatype.hal.HalModelBuilder;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -56,36 +58,65 @@ public class HierarchyReportController {
     return new HierarchyReportModel(dto);
   }
 
-  @GetMapping
-  public CollectionModel<HierarchyReportModel> findAll(
-      @RequestParam(name = "filter[id]", required = false)
-          @Parameter(description = "Filter Hierarchy Reports by IDs")
-          Set<String> id,
-      @RequestParam(name = "filter[journal]", required = false)
-          @Parameter(description = "Filter Hierarchy Reports by Journal IDs")
-          Set<UUID> journal,
-      @RequestParam(name = "filter[start]", required = false)
-          @Parameter(description = "Filter Hierarchy Reports after the date, inclusive")
-          @Nullable
-          LocalDate start,
-      @RequestParam(name = "filter[end]", required = false)
-          @Parameter(description = "Filter Hierarchy Reports before the date, inclusive")
-          @Nullable
-          LocalDate end) {
+  private void loadIncluded(
+      final HalModelBuilder builder,
+      final Collection<HierarchyReportModel> models,
+      final Set<HierarchyReportArgs.Include> include) {
+    if (include.contains(HierarchyReportArgs.Include.JOURNAL)) {
+      final var journalIds =
+          models.stream().map(HierarchyReportModel::getJournalId).collect(Collectors.toSet());
+      final var journals =
+          this.journalService.convert(this.journalService.findAllByIds(journalIds));
+      final var journalModels =
+          journals.stream().map(this.journalController::toEntityModel).toList();
+      builder.embed(journalModels, JournalModel.class);
+    }
 
-    final var query = new HierarchyReport.Query(id, journal, start, end);
+    if (include.contains(HierarchyReportArgs.Include.ACCOUNTS)) {
+      final var accountIds =
+          models.stream()
+              .flatMap(model -> model.getValues().keySet().stream())
+              .collect(Collectors.toSet());
+      final var accounts =
+          this.accountService.convert(this.accountService.findAllByIds(accountIds));
+      final var accountModels =
+          accounts.stream().map(this.accountController::toEntityModel).toList();
+      builder.embed(accountModels, AccountModel.class);
+    }
+  }
+
+  @GetMapping
+  public EntityModel<HierarchyReportsModel> findAll(
+      @ParameterObject HierarchyReportArgs.FindAll args) {
+    final var query =
+        new HierarchyReport.Query(
+            args.filter().id(),
+            args.filter().journal(),
+            args.filter().start(),
+            args.filter().end());
 
     final var dtos = this.hierarchyReportService.findAll(query);
-    log.info("Hierarchy Reports Found: {}", dtos);
-    return CollectionModel.of(dtos.stream().map(this::toEntityModel).toList());
+    final var models = dtos.stream().map(this::toEntityModel).toList();
+    final var builder = HalModelBuilder.halModelOf(new HierarchyReportsModel(models));
+    this.loadIncluded(builder, models, args.include());
+    return (EntityModel<HierarchyReportsModel>) builder.build();
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<HierarchyReportModel> findById(@PathVariable(name = "id") String id) {
+  public @Nullable EntityModel<HierarchyReportModel> findById(
+      @PathVariable(name = "id") String id, @ParameterObject HierarchyReportArgs.FindById args) {
     final var query = new HierarchyReport.Query(Set.of(id), null, null, null);
 
     final var dto = this.hierarchyReportService.findOne(query);
-    return ResponseEntity.of(dto.map(this::toEntityModel));
+    final var entity = dto.map(this::toEntityModel);
+
+    if (entity.isEmpty() || args.include().isEmpty()) {
+      return entity.map(EntityModel::of).orElse(null);
+    }
+
+    final var builder = HalModelBuilder.halModelOf(entity);
+    this.loadIncluded(builder, entity.stream().toList(), args.include());
+    return (EntityModel<HierarchyReportModel>) builder.build();
   }
 
   @GetMapping("/{id}/journal")
@@ -109,22 +140,24 @@ public class HierarchyReportController {
   }
 
   @GetMapping("/{id}/accounts")
-  public CollectionModel<AccountModel> findRelatedAccountsById(
+  public ResponseEntity<AccountsModel> findRelatedAccountsById(
       @PathVariable(name = "id") String id) {
     final var query = new HierarchyReport.Query(Set.of(id), null, null, null);
 
-    return CollectionModel.of(
-            this.hierarchyReportService.findOne(query).stream()
-                .flatMap(
-                    report -> {
-                      final var accountQuery = new Account.Query();
-                      accountQuery.setId(report.values().keySet());
-                      return this.accountService
-                          .convert(this.accountService.findAll(accountQuery))
-                          .stream();
-                    })
-                .map(this.accountController::toEntityModel)
-                .toList())
-        .add(Link.of(String.format("/hierarchy-reports/%s/accounts", id)));
+    final var report = this.hierarchyReportService.findOne(query);
+    if (report.isEmpty()) {
+      return ResponseEntity.notFound().build();
+    }
+
+    final var accountQuery = new Account.Query();
+    accountQuery.setId(report.get().values().keySet());
+    final var models =
+        this.accountService.convert(this.accountService.findAll(accountQuery)).stream()
+            .map(this.accountController::toEntityModel)
+            .toList();
+
+    return ResponseEntity.ok(
+        new AccountsModel(models)
+            .add(Link.of(String.format("/hierarchy-reports/%s/accounts", id))));
   }
 }

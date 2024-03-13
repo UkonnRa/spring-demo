@@ -93,7 +93,6 @@ public class EntryController {
 
   @GetMapping
   public EntityModel<EntriesModel> findAll(@ParameterObject EntryArgs.FindAll args) {
-
     final var query = new Entry.Query();
     query.setId(args.filter().id());
     query.setJournal(args.filter().journal());

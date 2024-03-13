@@ -3,13 +3,13 @@ package com.ukonnra.wonderland.springelectrontest.hateoas.controller;
 import com.ukonnra.wonderland.springelectrontest.entity.Journal;
 import com.ukonnra.wonderland.springelectrontest.entity.JournalDto;
 import com.ukonnra.wonderland.springelectrontest.hateoas.model.JournalModel;
+import com.ukonnra.wonderland.springelectrontest.hateoas.model.JournalsModel;
 import com.ukonnra.wonderland.springelectrontest.service.JournalService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Set;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.Link;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +36,7 @@ public class JournalController {
   }
 
   @GetMapping
-  public CollectionModel<JournalModel> findAll(@ParameterObject JournalArgs.FindAll args) {
+  public JournalsModel findAll(@ParameterObject JournalArgs.FindAll args) {
 
     final var query = new Journal.Query();
     query.setId(args.filter().id());
@@ -46,7 +46,8 @@ public class JournalController {
     query.setFullText(args.filter().fullText());
 
     final var dtos = this.journalService.convert(this.journalService.findAll(query));
-    return CollectionModel.of(dtos.stream().map(this::toEntityModel).toList());
+    final var models = dtos.stream().map(this::toEntityModel).toList();
+    return new JournalsModel(models);
   }
 
   @GetMapping("/{id}")
