@@ -19,47 +19,45 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Slf4j
-public class HierarchyReportService implements ReadService<HierarchyReport, HierarchyReport.Query> {
-  private final AccountService accountService;
-  private final EntryService entryService;
-  private final ObjectMapper objectMapper;
+public interface HierarchyReportService
+    extends ReadService<HierarchyReport, HierarchyReport.Query> {
+  AccountService accountService();
 
-  public HierarchyReportService(
-      AccountService accountService, EntryService entryService, ObjectMapper objectMapper) {
-    this.accountService = accountService;
-    this.entryService = entryService;
-    this.objectMapper = objectMapper;
-  }
+  EntryService entryService();
+
+  ObjectMapper objectMapper();
+
+  Logger log();
 
   private @Nullable PrefixIndex decodeId(final String id) {
     try {
       final var jsonString = Base64.getUrlDecoder().decode(id.getBytes(StandardCharsets.UTF_8));
-      return this.objectMapper.readValue(jsonString, PrefixIndex.class);
+      return this.objectMapper().readValue(jsonString, PrefixIndex.class);
     } catch (IllegalArgumentException | IOException e) {
-      log.warn("Error when decode Report Id: {}", e.getMessage(), e);
+      this.log().warn("Error when decode Report Id: {}", e.getMessage(), e);
       return null;
     }
   }
 
   private @Nullable String encodeId(final PrefixIndex id) {
     try {
-      final var jsonString = this.objectMapper.writeValueAsString(id);
+      final var jsonString = this.objectMapper().writeValueAsString(id);
       return Base64.getUrlEncoder().encodeToString(jsonString.getBytes(StandardCharsets.UTF_8));
     } catch (JsonProcessingException e) {
-      log.warn("Error when encode Report Id: {}", e.getMessage(), e);
+      this.log().warn("Error when encode Report Id: {}", e.getMessage(), e);
       return null;
     }
   }
 
   @Override
   @Transactional
-  public List<HierarchyReport> findAll(HierarchyReport.Query query) {
-    log.info("== Start Finding All Hierarchy Reports");
+  default List<HierarchyReport> findAll(HierarchyReport.Query query) {
+    this.log().info("== Start Finding All Hierarchy Reports");
 
     final var reportIds =
         query.id().stream()
@@ -72,15 +70,15 @@ public class HierarchyReportService implements ReadService<HierarchyReport, Hier
 
     final var accountQuery = new Account.Query();
     accountQuery.setJournal(journalIds);
-    final var accounts = this.accountService.findAll(accountQuery);
-    log.info("  Accounts: {}", accounts);
+    final var accounts = this.accountService().findAll(accountQuery);
+    this.log().info("  Accounts: {}", accounts);
 
     final var entryQuery = new Entry.Query();
     entryQuery.setJournal(journalIds);
     entryQuery.setStart(query.start());
     entryQuery.setEnd(query.end());
-    final var entries = this.entryService.findAll(entryQuery);
-    log.info("  Entries: {}", accounts);
+    final var entries = this.entryService().findAll(entryQuery);
+    this.log().info("  Entries: {}", accounts);
 
     final var results =
         this.doAggregateByAccount(accounts, entries).entrySet().stream()
@@ -114,7 +112,7 @@ public class HierarchyReportService implements ReadService<HierarchyReport, Hier
             .filter(Objects::nonNull)
             .toList();
 
-    log.info("  Reports: {}", results);
+    this.log().info("  Reports: {}", results);
 
     return results;
   }
@@ -149,15 +147,46 @@ public class HierarchyReportService implements ReadService<HierarchyReport, Hier
     return resultsByAccount;
   }
 
-  public record AccountIndex(UUID journalId, String prefix, String unit, UUID accountId) {}
+  record AccountIndex(UUID journalId, String prefix, String unit, UUID accountId) {}
 
-  public record PrefixIndex(UUID journalId, String prefix, String unit) {
+  record PrefixIndex(UUID journalId, String prefix, String unit) {
     public PrefixIndex(final AccountIndex index) {
       this(index.journalId, index.prefix, index.unit);
     }
 
     public PrefixIndex(final HierarchyReport report) {
       this(report.journalId(), report.prefix(), report.unit());
+    }
+  }
+
+  @Service
+  @Slf4j
+  class Impl implements HierarchyReportService {
+    private final AccountService accountService;
+    private final EntryService entryService;
+    private final ObjectMapper objectMapper;
+
+    public Impl(
+        AccountService accountService, EntryService entryService, ObjectMapper objectMapper) {
+      this.accountService = accountService;
+      this.entryService = entryService;
+      this.objectMapper = objectMapper;
+    }
+
+    public AccountService accountService() {
+      return this.accountService;
+    }
+
+    public EntryService entryService() {
+      return this.entryService;
+    }
+
+    public ObjectMapper objectMapper() {
+      return this.objectMapper;
+    }
+
+    public Logger log() {
+      return log;
     }
   }
 }

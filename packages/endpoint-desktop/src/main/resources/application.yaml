@@ -16,7 +16,7 @@ springdoc:
   default-produces-media-type: application/json
 app:
   hateoas:
-    domain-name: localhost
+    base-url: http://localhost:${WHITE_RABBIT_PORT:8080}
 management:
   endpoints:
     web:

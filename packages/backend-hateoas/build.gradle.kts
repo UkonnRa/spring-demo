@@ -11,4 +11,7 @@ dependencies {
 
   implementation("org.springframework.boot:spring-boot-starter-hateoas")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${Versions.SPRINGDOC}")
+
+  testImplementation("org.hibernate.orm:hibernate-community-dialects")
+  testRuntimeOnly("com.h2database:h2")
 }

@@ -11,7 +11,6 @@ import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.servers.Server;
 import java.util.List;
 import org.springdoc.core.utils.SpringDocUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
@@ -22,8 +21,10 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-@Import(CoreConfiguration.class)
-@EnableConfigurationProperties(HateoasProperties.class)
+@Import({CoreConfiguration.class, BuildProperties.class})
+@EnableConfigurationProperties({
+  HateoasProperties.class,
+})
 @ComponentScan(basePackageClasses = HateoasConfiguration.class)
 public class HateoasConfiguration implements WebMvcConfigurer {
   static {
@@ -57,13 +58,10 @@ public class HateoasConfiguration implements WebMvcConfigurer {
 
   @Bean
   public OpenAPI openapi(
-      @Value("${server.port}") int port,
-      final HateoasProperties properties,
-      final BuildProperties buildProperties) {
+      final HateoasProperties properties, final BuildProperties buildProperties) {
     return new OpenAPI()
         .info(new Info().title("Spring Electron Test API").version(buildProperties.getVersion()))
-        .addServersItem(
-            new Server().url(String.format("http://%s:%d", properties.domainName(), port)));
+        .addServersItem(new Server().url(properties.baseUrl()));
   }
 
   @Override
