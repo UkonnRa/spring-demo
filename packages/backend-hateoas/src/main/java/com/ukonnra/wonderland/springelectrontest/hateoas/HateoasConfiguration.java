@@ -3,6 +3,10 @@ package com.ukonnra.wonderland.springelectrontest.hateoas;
 import com.ukonnra.wonderland.springelectrontest.CoreConfiguration;
 import com.ukonnra.wonderland.springelectrontest.entity.EntryDto;
 import com.ukonnra.wonderland.springelectrontest.entity.EntryState;
+import com.ukonnra.wonderland.springelectrontest.hateoas.controller.AccountArgs;
+import com.ukonnra.wonderland.springelectrontest.hateoas.controller.EntryArgs;
+import com.ukonnra.wonderland.springelectrontest.hateoas.controller.HierarchyReportArgs;
+import com.ukonnra.wonderland.springelectrontest.hateoas.controller.JournalArgs;
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -11,6 +15,7 @@ import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.servers.Server;
 import java.util.List;
 import org.springdoc.core.utils.SpringDocUtils;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
@@ -26,6 +31,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
   HateoasProperties.class,
 })
 @ComponentScan(basePackageClasses = HateoasConfiguration.class)
+@RegisterReflectionForBinding({
+  JournalArgs.FindAll.class,
+  AccountArgs.FindAll.class,
+  AccountArgs.FindById.class,
+  EntryArgs.FindAll.class,
+  EntryArgs.FindById.class,
+  HierarchyReportArgs.FindAll.class,
+  HierarchyReportArgs.FindById.class,
+})
 public class HateoasConfiguration implements WebMvcConfigurer {
   static {
     final var converters = ModelConverters.getInstance();

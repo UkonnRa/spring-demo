@@ -6,9 +6,19 @@ import com.ukonnra.wonderland.springelectrontest.entity.Account_;
 import com.ukonnra.wonderland.springelectrontest.entity.Entry_;
 import com.ukonnra.wonderland.springelectrontest.entity.Journal_;
 import com.ukonnra.wonderland.springelectrontest.repository.Repository;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.aot.hint.TypeHint;
+import org.springframework.aot.hint.TypeReference;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,7 +47,6 @@ public class JpaConfiguration {
     @Override
     public void registerHints(
         org.springframework.aot.hint.RuntimeHints hints, ClassLoader classLoader) {
-
       // hibernate-jpamodelgen uses Reflection to work
       final var entries =
           List.of(
@@ -68,6 +77,21 @@ public class JpaConfiguration {
           hints.reflection().registerField(field);
         }
       }
+
+      // https://github.com/FasterXML/jackson-databind/issues/4299
+      hints
+          .reflection()
+          .registerTypes(
+              TypeReference.listOf(
+                  ArrayList.class,
+                  LinkedList.class,
+                  HashSet.class,
+                  TreeSet.class,
+                  ConcurrentHashMap.class,
+                  LinkedHashMap.class,
+                  TreeMap.class),
+              TypeHint.builtWith(
+                  MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS));
     }
   }
 }

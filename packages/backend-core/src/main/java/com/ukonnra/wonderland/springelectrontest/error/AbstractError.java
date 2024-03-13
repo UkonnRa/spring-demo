@@ -19,7 +19,7 @@ public abstract class AbstractError extends RuntimeException {
     return Map.of();
   }
 
-  public ProblemDetail getProblemDetail() {
+  public final ProblemDetail getProblemDetail() {
     final var detail = ProblemDetail.forStatusAndDetail(this.getStatus(), this.getMessage());
     detail.setTitle(this.getTitle());
     detail.setProperties(this.getProperties());

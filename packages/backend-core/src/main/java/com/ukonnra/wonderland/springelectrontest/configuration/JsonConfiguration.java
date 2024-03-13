@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @RegisterReflectionForBinding({
   HierarchyReportService.AccountIndex.class,
-  HierarchyReportService.PrefixIndex.class
+  HierarchyReportService.PrefixIndex.class,
 })
 public class JsonConfiguration {
   @Bean
