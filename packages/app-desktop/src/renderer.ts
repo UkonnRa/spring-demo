@@ -19,6 +19,10 @@ const intervalId = setInterval(async () => {
     const resp = await fetch(`http://localhost:${port}/actuator/health`);
     const body = await resp.json();
     if (resp.ok && body.status === "UP") {
+      await fetch(`http://localhost:${port}/init`, {
+        method: "POST",
+      });
+
       const app = createApp(App);
 
       app.use(agGrid);

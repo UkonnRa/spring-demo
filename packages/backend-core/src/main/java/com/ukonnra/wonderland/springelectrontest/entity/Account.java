@@ -26,7 +26,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.data.jpa.domain.Specification;
 
 @Getter
@@ -152,7 +151,7 @@ public class Account extends AbstractEntity {
         return;
       }
       this.name =
-          name.stream().map(String::trim).filter(Strings::isNotEmpty).collect(Collectors.toSet());
+          name.stream().map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toSet());
     }
 
     public void setUnit(@Nullable Collection<String> unit) {
@@ -161,7 +160,7 @@ public class Account extends AbstractEntity {
         return;
       }
       this.unit =
-          unit.stream().map(String::trim).filter(Strings::isNotEmpty).collect(Collectors.toSet());
+          unit.stream().map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toSet());
     }
 
     public void setType(@Nullable Collection<Type> type) {
@@ -178,7 +177,7 @@ public class Account extends AbstractEntity {
         return;
       }
       this.tag =
-          tag.stream().map(String::trim).filter(Strings::isNotEmpty).collect(Collectors.toSet());
+          tag.stream().map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toSet());
     }
 
     public void setFullText(@Nullable String fullText) {

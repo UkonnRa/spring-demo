@@ -3,12 +3,8 @@ import { AbstractReadApi } from "@/services/api";
 import { HierarchyReport } from "@core/services";
 
 class HierarchyReportApiImpl extends AbstractReadApi<HierarchyReport, HierarchyReportQuery> {
-  protected override get findAllKey(): string {
-    return "journal_find_all";
-  }
-
-  protected override get findByIdKey(): string {
-    return "journal_find_by_id";
+  protected override get modelType(): string {
+    return "/hierarchy-reports";
   }
 
   protected override convert(input: Record<string, unknown>): HierarchyReport {

@@ -13,7 +13,7 @@ plugins {
   id("io.freefair.lombok") version "8.6"
   id("org.sonarqube") version "4.4.1.3373"
 
-  id("org.springframework.boot") version "3.2.3" apply false
+  id("org.springframework.boot") version "3.2.4" apply false
   id("io.spring.dependency-management") version "1.1.4"
   id("org.graalvm.buildtools.native") version "0.10.1" apply false
 }
@@ -52,9 +52,6 @@ subprojects {
       mavenBom(SpringBootPlugin.BOM_COORDINATES)
     }
   }
-
-  // INFO: For Hibernate Bug: https://github.com/spring-projects/spring-boot/releases/tag/v3.2.3
-  ext["hibernate.version"] = "6.4.2.Final"
 
   dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")

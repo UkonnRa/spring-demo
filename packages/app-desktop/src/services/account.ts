@@ -13,16 +13,8 @@ import { AbstractWriteApi } from "./api";
 import { journalApi } from "./journal";
 
 class AccountApiImpl extends AbstractWriteApi<Account, AccountQuery, AccountCommand, AccountSort> {
-  protected override get findAllKey(): string {
-    return "account_find_all";
-  }
-
-  protected override get findByIdKey(): string {
-    return "account_find_by_id";
-  }
-
-  protected override get handleCommandKey(): string {
-    return "account_handle_command";
+  protected override get modelType(): string {
+    return "/accounts";
   }
 
   protected override async loadIncluded(models: Account[]): Promise<Map<string, Model>> {

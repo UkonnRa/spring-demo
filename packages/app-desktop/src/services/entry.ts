@@ -19,16 +19,8 @@ import { accountApi } from "./account";
 import { validate as uuidValidate } from "uuid";
 
 class EntryApiImpl extends AbstractWriteApi<Entry, EntryQuery, EntryCommand, EntrySort> {
-  protected override get findAllKey(): string {
-    return "entry_find_all";
-  }
-
-  protected override get findByIdKey(): string {
-    return "entry_find_by_id";
-  }
-
-  protected override get handleCommandKey(): string {
-    return "entry_handle_command";
+  protected override get modelType(): string {
+    return "/entries";
   }
 
   protected override async loadIncluded(models: Entry[]): Promise<Map<string, Model>> {
