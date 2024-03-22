@@ -13,10 +13,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "/init", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Init", description = "Init API")
 @Slf4j
+@Transactional
 public class InitController {
   private final JournalService journalService;
   private final AccountService accountService;
@@ -39,11 +42,18 @@ public class InitController {
 
   @PostMapping
   public void init() {
+    final var prefix = UUID.randomUUID().toString();
     var journals =
         List.of(
-            new Journal("Name 1", "Desc 1", "Unit 1", Set.of("Tag 1", "Tag 2")),
-            new Journal("Name 2", "Desc 2", "Unit 2", Set.of("Tag 2", "Tag 4")),
-            new Journal("Name 3", "Desc 3", "Unit 3", Set.of("Tag 1", "Tag 4")));
+            new Journal(
+                String.format("Name 1 - %s", prefix), "Desc 1", "Unit 1", Set.of("Tag 1", "Tag 2")),
+            new Journal(
+                String.format("Name 2 - %s", prefix), "Desc 2", "Unit 2", Set.of("Tag 2", "Tag 4")),
+            new Journal(
+                String.format("Name 3 - %s", prefix),
+                "Desc 3",
+                "Unit 3",
+                Set.of("Tag 1", "Tag 4")));
 
     journals = this.journalService.getRepository().saveAllAndFlush(journals);
 

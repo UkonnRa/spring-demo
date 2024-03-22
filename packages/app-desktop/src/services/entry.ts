@@ -1,22 +1,25 @@
-import type {
-  AccountQuery,
-  JournalQuery,
-  EntryApi,
-  EntryCommand,
-  EntryItem,
-  EntryQuery,
-  EntrySort,
-  EntryState,
-  EntryType,
-  Model,
-  EntryStateItem,
+import {
+  type AccountQuery,
+  type JournalQuery,
+  type EntryApi,
+  type EntryCommand,
+  type EntryItem,
+  type EntryQuery,
+  type EntrySort,
+  type EntryState,
+  type EntryType,
+  type Model,
+  type EntryStateItem,
+  ENTRY_TYPES,
+  type AccountCommand,
 } from "@core/services";
 import { Entry } from "@core/services";
-import { AbstractWriteApi } from "./api";
+import { AbstractWriteApi, type HttpMethod } from "./api";
 import { journalApi } from "./journal";
 import { toMap } from "@core/utils";
 import { accountApi } from "./account";
 import { validate as uuidValidate } from "uuid";
+import { isString } from "lodash";
 
 class EntryApiImpl extends AbstractWriteApi<Entry, EntryQuery, EntryCommand, EntrySort> {
   protected override get modelType(): string {
@@ -55,7 +58,7 @@ class EntryApiImpl extends AbstractWriteApi<Entry, EntryQuery, EntryCommand, Ent
     return undefined;
   }
 
-  protected override convert(input: Record<string, unknown>): Entry {
+  protected override convert(input: Record<string, unknown>): Entry | undefined {
     const items: EntryItem[] = (
       input.items as Array<{ account: string; price?: string; amount: string }>
     ).map(({ account, amount, price }) => ({
@@ -82,17 +85,37 @@ class EntryApiImpl extends AbstractWriteApi<Entry, EntryQuery, EntryCommand, Ent
       );
     }
 
-    return new Entry({
-      id: input.id as string,
-      journalId: input.journalId as string,
-      name: input.name as string,
-      description: input.description as string,
-      type: input.type as EntryType,
-      date: input.date as string,
-      tags: input.tags as string[],
-      items: items,
-      state: state,
-    });
+    if (
+      isString(input.id) &&
+      uuidValidate(input.id) &&
+      isString(input.journalId) &&
+      uuidValidate(input.journalId) &&
+      isString(input.name) &&
+      isString(input.description) &&
+      isString(input.type) &&
+      isString(input.date) &&
+      Array.isArray(input.tags)
+    ) {
+      return new Entry({
+        id: input.id,
+        journalId: input.journalId,
+        name: input.name,
+        description: input.description,
+        type: input.type as EntryType,
+        date: input.date,
+        tags: input.tags as string[],
+        items: items,
+        state: state,
+      });
+    }
+
+    return undefined;
+  }
+
+  protected parseCommand(
+    command: EntryCommand,
+  ): [string | null, HttpMethod, Record<string, unknown>] {
+    return [null, "GET", {}];
   }
 }
 

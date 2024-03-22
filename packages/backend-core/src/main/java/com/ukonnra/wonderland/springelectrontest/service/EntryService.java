@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 public interface EntryService
     extends WriteService<Entry, Entry.Query, Object, EntryRepository, EntryDto> {
 
@@ -79,7 +80,7 @@ public interface EntryService
   }
 
   @Override
-  @Transactional
+  @Transactional(readOnly = true)
   default List<EntryDto> convert(Collection<Entry> entities) {
     final var accountIds =
         entities.stream()

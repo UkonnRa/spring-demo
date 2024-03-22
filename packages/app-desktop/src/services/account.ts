@@ -1,16 +1,18 @@
-import type {
-  AccountApi,
-  AccountCommand,
-  AccountQuery,
-  AccountSort,
-  AccountType,
-  JournalQuery,
-  Model,
+import {
+  type AccountApi,
+  type AccountCommand,
+  type AccountQuery,
+  type AccountSort,
+  type AccountType,
+  type JournalQuery,
+  type Model,
 } from "@core/services";
 import { Account } from "@core/services";
 import { toMap } from "@core/utils";
-import { AbstractWriteApi } from "./api";
+import { AbstractWriteApi, type HttpMethod } from "./api";
 import { journalApi } from "./journal";
+import { isString } from "lodash";
+import { validate as uuidValidate } from "uuid";
 
 class AccountApiImpl extends AbstractWriteApi<Account, AccountQuery, AccountCommand, AccountSort> {
   protected override get modelType(): string {
@@ -23,16 +25,35 @@ class AccountApiImpl extends AbstractWriteApi<Account, AccountQuery, AccountComm
     return toMap(journals[0]);
   }
 
-  protected override convert(input: Record<string, unknown>): Account {
-    return new Account({
-      id: input.id as string,
-      name: input.name as string,
-      description: input.description as string,
-      unit: input.unit as string,
-      type: input.type as AccountType,
-      tags: input.tags as string[],
-      journalId: input.journalId as string,
-    });
+  protected override convert(input: Record<string, unknown>): Account | undefined {
+    if (
+      isString(input.id) &&
+      uuidValidate(input.id) &&
+      isString(input.name) &&
+      isString(input.description) &&
+      isString(input.unit) &&
+      isString(input.type) &&
+      Array.isArray(input.tags) &&
+      isString(input.journalId)
+    ) {
+      return new Account({
+        id: input.id,
+        name: input.name,
+        description: input.description,
+        unit: input.unit,
+        type: input.type as AccountType,
+        tags: input.tags as string[],
+        journalId: input.journalId,
+      });
+    }
+
+    return undefined;
+  }
+
+  protected parseCommand(
+    command: AccountCommand,
+  ): [string | null, HttpMethod, Record<string, unknown>] {
+    return [null, "GET", {}];
   }
 }
 

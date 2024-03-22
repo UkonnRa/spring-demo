@@ -7,7 +7,9 @@ import jakarta.validation.Validator;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 public interface AccountService
     extends WriteService<Account, Account.Query, Object, AccountRepository, AccountDto> {
 

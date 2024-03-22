@@ -10,7 +10,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 public interface WriteService<
         E extends AbstractEntity, Q extends Specification<E>, C, R extends Repository<E>, T>
     extends ReadService<E, Q> {

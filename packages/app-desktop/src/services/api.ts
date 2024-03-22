@@ -1,8 +1,8 @@
 import type { Command, FindAllArgs, Query, ReadApi, Model, WriteApi } from "@core/services";
 import { Notify } from "quasar";
-import { get, isNumber, isObject, isObjectLike, isString } from "lodash";
+import { get, isEmpty, isNumber, isObject, isObjectLike, isString, omitBy } from "lodash";
 
-type HttpMethod = "GET" | "POST" | "DELETE" | "PATCH";
+export type HttpMethod = "GET" | "POST" | "DELETE" | "PATCH";
 
 type ProblemDetail = {
   readonly status: number;
@@ -52,7 +52,7 @@ export abstract class AbstractReadApi<M extends Model, Q extends Query, S extend
     }
   }
 
-  private async request(
+  protected async request(
     path: string,
     searchParams?: Record<string, string>,
     method: HttpMethod = "GET",
@@ -114,23 +114,14 @@ export abstract class AbstractReadApi<M extends Model, Q extends Query, S extend
   }
 
   async findById(id: string, loadIncluded?: boolean): Promise<[M, Map<string, Model>] | null> {
+    const body = await this.request(`${this.modelType}/${id}`);
+
+    if (!isEmpty(body)) {
+      const converted = this.convert(body);
+      return converted ? [converted, new Map()] : null;
+    }
+
     return null;
-    // let response: Record<string, unknown> | null = null;
-    // try {
-    //   response = (await ipcRenderer.invoke(this.findByIdKey, {
-    //     id,
-    //   })) as Record<string, unknown> | null;
-    // } catch (e) {
-    //   console.error(e);
-    //   throw e;
-    // }
-    //
-    // if (response) {
-    //   const model = this.convert(response);
-    //   return [model, loadIncluded ? await this.loadIncluded([model]) : new Map()];
-    // } else {
-    //   return response;
-    // }
   }
 }
 
@@ -143,8 +134,31 @@ export abstract class AbstractWriteApi<
   extends AbstractReadApi<M, Q, S>
   implements WriteApi<M, Q, C, S>
 {
-  async handleCommand(command: C): Promise<M[]> {
-    return [];
+  protected abstract parseCommand(command: C): [string | null, HttpMethod, Record<string, unknown>];
+
+  async handleCommand(input: C): Promise<M[]> {
+    const [id, method, body] = this.parseCommand(input);
+
+    const response = await this.request(
+      id ? `${this.modelType}/${id}` : this.modelType,
+      undefined,
+      method,
+      { data: body },
+    );
+
+    const models: M[] = [];
+    if (Array.isArray(body?.values)) {
+      models.push(
+        ...body.values.map((value) => this.convert(value)).filter((model): model is M => !!model),
+      );
+    } else {
+      const converted = this.convert(body);
+      if (converted) {
+        models.push(converted);
+      }
+    }
+
+    return models;
 
     // let response: Record<string, unknown>[] = [];
 

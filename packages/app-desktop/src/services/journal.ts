@@ -1,6 +1,12 @@
-import type { JournalApi, JournalCommand, JournalQuery, JournalSort } from "@core/services";
+import type {
+  EntryCommand,
+  JournalApi,
+  JournalCommand,
+  JournalQuery,
+  JournalSort,
+} from "@core/services";
 import { Journal } from "@core/services";
-import { AbstractWriteApi } from "./api";
+import { AbstractWriteApi, type HttpMethod } from "./api";
 
 class JournalApiImpl extends AbstractWriteApi<Journal, JournalQuery, JournalCommand, JournalSort> {
   protected override get modelType(): string {
@@ -17,6 +23,12 @@ class JournalApiImpl extends AbstractWriteApi<Journal, JournalQuery, JournalComm
       input.unit as string,
       input.tags as string[],
     );
+  }
+
+  protected parseCommand(
+    command: JournalCommand,
+  ): [string | null, HttpMethod, Record<string, unknown>] {
+    return [null, "GET", {}];
   }
 }
 

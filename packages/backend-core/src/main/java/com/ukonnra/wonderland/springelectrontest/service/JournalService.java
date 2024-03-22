@@ -15,6 +15,7 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 public interface JournalService
     extends WriteService<Journal, Journal.Query, JournalCommand, JournalRepository, JournalDto> {
   @Override
