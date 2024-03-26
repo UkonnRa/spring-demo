@@ -1,20 +1,21 @@
 package com.ukonnra.wonderland.springelectrontest.entity;
 
 import jakarta.annotation.Nullable;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Index;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.validation.constraints.Size;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,7 +24,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -63,18 +63,15 @@ public class Entry extends AbstractEntity {
   @Column(nullable = false)
   private LocalDate date;
 
-  @ElementCollection
+  @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(
       name = "entry_tags",
       indexes = @Index(unique = true, columnList = "entry_id, tag"))
   @Column(name = "tag", nullable = false, length = MAX_NAMELY)
   private Set<String> tags;
 
-  @ElementCollection
-  @CollectionTable(
-      name = "entry_items",
-      indexes = @Index(unique = true, columnList = "entry_id, account_id"))
-  private Set<Item> items;
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "entry")
+  private Set<EntryItem> items = new HashSet<>();
 
   public Entry(
       Journal journal,
@@ -82,38 +79,18 @@ public class Entry extends AbstractEntity {
       String description,
       Type type,
       LocalDate date,
-      Set<String> tags,
-      Set<Item> items) {
+      Set<String> tags) {
     this.journal = journal;
     this.name = name;
     this.description = description;
     this.type = type;
     this.date = date;
     this.tags = new HashSet<>(tags);
-    this.items = new HashSet<>(items);
   }
 
   public enum Type {
     RECORD,
     CHECK,
-  }
-
-  @Getter
-  @Setter
-  @AllArgsConstructor
-  @NoArgsConstructor(access = AccessLevel.PROTECTED)
-  @ToString
-  @Embeddable
-  public static class Item {
-    @ManyToOne(optional = false)
-    @ToString.Exclude
-    private Account account;
-
-    @Column(nullable = false)
-    private BigDecimal amount;
-
-    @Column(nullable = false)
-    private BigDecimal price;
   }
 
   @NoArgsConstructor
@@ -211,7 +188,7 @@ public class Entry extends AbstractEntity {
       }
 
       if (!account.isEmpty()) {
-        predicates.add(itemJoin.<Account>get("account").get(Account_.id).in(account));
+        predicates.add(itemJoin.get(EntryItem_.account).get(Account_.id).in(account));
       }
 
       if (!name.isEmpty()) {

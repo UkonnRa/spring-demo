@@ -2,6 +2,7 @@ package com.ukonnra.wonderland.springelectrontest.service;
 
 import com.ukonnra.wonderland.springelectrontest.entity.Account;
 import com.ukonnra.wonderland.springelectrontest.entity.Entry;
+import com.ukonnra.wonderland.springelectrontest.entity.EntryCommand;
 import com.ukonnra.wonderland.springelectrontest.entity.EntryDto;
 import com.ukonnra.wonderland.springelectrontest.entity.EntryState;
 import com.ukonnra.wonderland.springelectrontest.repository.EntryRepository;
@@ -21,12 +22,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public interface EntryService
-    extends WriteService<Entry, Entry.Query, Object, EntryRepository, EntryDto> {
+    extends WriteService<Entry, Entry.Query, EntryCommand, EntryRepository, EntryDto> {
 
   AccountService getAccountService();
 
   @Override
-  default List<Entry> handleCommand(Object command) {
+  default List<Entry> handleCommand(EntryCommand command) {
     return null;
   }
 
@@ -80,7 +81,6 @@ public interface EntryService
   }
 
   @Override
-  @Transactional(readOnly = true)
   default List<EntryDto> convert(Collection<Entry> entities) {
     final var accountIds =
         entities.stream()

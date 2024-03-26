@@ -1,6 +1,7 @@
 package com.ukonnra.wonderland.springelectrontest.service;
 
 import com.ukonnra.wonderland.springelectrontest.entity.Account;
+import com.ukonnra.wonderland.springelectrontest.entity.AccountCommand;
 import com.ukonnra.wonderland.springelectrontest.entity.AccountDto;
 import com.ukonnra.wonderland.springelectrontest.repository.AccountRepository;
 import jakarta.validation.Validator;
@@ -11,10 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public interface AccountService
-    extends WriteService<Account, Account.Query, Object, AccountRepository, AccountDto> {
+    extends WriteService<Account, Account.Query, AccountCommand, AccountRepository, AccountDto> {
 
   @Override
-  default List<Account> handleCommand(Object command) {
+  default List<Account> handleCommand(AccountCommand command) {
     return null;
   }
 

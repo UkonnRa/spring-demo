@@ -1,5 +1,6 @@
 package com.ukonnra.wonderland.springelectrontest.service;
 
+import com.ukonnra.wonderland.springelectrontest.entity.AbstractCommand;
 import com.ukonnra.wonderland.springelectrontest.entity.AbstractEntity;
 import com.ukonnra.wonderland.springelectrontest.repository.Repository;
 import jakarta.annotation.Nullable;
@@ -14,7 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public interface WriteService<
-        E extends AbstractEntity, Q extends Specification<E>, C, R extends Repository<E>, T>
+        E extends AbstractEntity,
+        Q extends Specification<E>,
+        C extends AbstractCommand,
+        R extends Repository<E>,
+        T>
     extends ReadService<E, Q> {
   List<E> handleCommand(final C command);
 

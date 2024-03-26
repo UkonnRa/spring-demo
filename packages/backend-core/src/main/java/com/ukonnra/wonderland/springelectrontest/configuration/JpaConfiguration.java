@@ -3,6 +3,7 @@ package com.ukonnra.wonderland.springelectrontest.configuration;
 import com.ukonnra.wonderland.springelectrontest.entity.AbstractEntity;
 import com.ukonnra.wonderland.springelectrontest.entity.AbstractEntity_;
 import com.ukonnra.wonderland.springelectrontest.entity.Account_;
+import com.ukonnra.wonderland.springelectrontest.entity.EntryItem_;
 import com.ukonnra.wonderland.springelectrontest.entity.Entry_;
 import com.ukonnra.wonderland.springelectrontest.entity.Journal_;
 import com.ukonnra.wonderland.springelectrontest.repository.Repository;
@@ -69,7 +70,12 @@ public class JpaConfiguration {
               Map.entry(Entry_.DESCRIPTION, Entry_.class),
               Map.entry(Entry_.TYPE, Entry_.class),
               Map.entry(Entry_.ITEMS, Entry_.class),
-              Map.entry(Entry_.TAGS, Entry_.class));
+              Map.entry(Entry_.TAGS, Entry_.class),
+              Map.entry(EntryItem_.ENTRY, EntryItem_.class),
+              Map.entry(EntryItem_.AMOUNT, EntryItem_.class),
+              Map.entry(EntryItem_.PRICE, EntryItem_.class),
+              Map.entry(EntryItem_.ID, EntryItem_.class),
+              Map.entry(EntryItem_.ACCOUNT, EntryItem_.class));
 
       for (final var entry : entries) {
         final var field = ReflectionUtils.findField(entry.getValue(), entry.getKey());
