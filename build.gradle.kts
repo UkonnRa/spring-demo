@@ -11,7 +11,7 @@ plugins {
   id("com.diffplug.spotless") version "6.25.0"
   id("com.github.ben-manes.versions") version "0.51.0"
   id("io.freefair.lombok") version "8.6"
-  id("org.sonarqube") version "4.4.1.3373"
+  id("org.sonarqube") version "5.0.0.4638"
 
   id("org.springframework.boot") version "3.2.4" apply false
   id("io.spring.dependency-management") version "1.1.4"

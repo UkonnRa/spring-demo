@@ -84,4 +84,53 @@ class EntrySerdeTest {
       Assertions.assertEquals(dto, converted);
     }
   }
+
+  @Test
+  void serdeCommands() throws JsonProcessingException {
+    final var commands =
+        List.of(
+            new JournalCommand.Create(null, "Name 1", "Desc 1", "Unit 1", Set.of("Tag 1", "Tag 2")),
+            new JournalCommand.Update(
+                UUID.fromString("2f611717-2716-4d3b-a01d-62dff21936bc"),
+                "",
+                null,
+                "",
+                Set.of("Tag 2", "Tag 3")),
+            new JournalCommand.Delete(Set.of()),
+            new JournalCommand.Delete(
+                Set.of(UUID.fromString("2f611717-2716-4d3b-a01d-62dff21936bd"))),
+            new JournalCommand.Batch(
+                Set.of(
+                    new JournalCommand.Create(
+                        null, "Name 2", "Desc 2", "Unit 2", Set.of("Tag 2", "Tag 4"))),
+                Set.of(),
+                Set.of()));
+
+    for (final var command : commands) {
+      final var json = this.objectMapper.writeValueAsString(command);
+      log.info("Json: {}", json);
+
+      final var converted = this.objectMapper.readValue(json, JournalCommand.class);
+      log.info("Converted: {}", converted);
+      Assertions.assertEquals(command, converted);
+    }
+
+    Assertions.assertEquals(
+        commands.getLast(),
+        this.objectMapper.readValue(
+            """
+{
+  "type": "journals:batch",
+  "create": [
+    {
+      "type": "journals:create",
+      "name": "Name 2",
+      "description": "Desc 2",
+      "unit": "Unit 2",
+      "tags": [ "Tag 2", "Tag 4" ]
+    }
+  ]
+}""",
+            JournalCommand.class));
+  }
 }

@@ -25,7 +25,7 @@
     "@ag-grid-enterprise/row-grouping": "^31.2.0",
     "@ag-grid-enterprise/set-filter": "^31.2.0",
     "@quasar/extras": "^1.16.9",
-    "@tanstack/vue-query": "^5.28.8",
+    "@tanstack/vue-query": "^5.28.9",
     "@vueuse/core": "^10.9.0",
     "ag-charts-community": "^9.2.0",
     "date-fns": "^3.6.0",

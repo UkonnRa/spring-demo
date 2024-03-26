@@ -2,7 +2,10 @@
   <q-layout view="lHh lpr lff">
     <q-header elevated>
       <q-toolbar>
-        <q-toolbar-title>Wonderland White Rabbit</q-toolbar-title>
+        <q-toolbar-title>
+          Wonderland White Rabbit
+          <span>{{ t("test") }}</span>
+        </q-toolbar-title>
         <q-btn flat round dense :icon="darkIcon" @click="toggleDark()" />
         <q-btn flat round dense icon="translate">
           <q-menu auto-close>
@@ -41,7 +44,7 @@ import { useQuasar } from "quasar";
 import { useDark } from "@core/composable";
 
 const quasar = useQuasar();
-const { locale } = useI18n();
+const { locale, t } = useI18n();
 const [isDark, toggleDark] = useDark();
 
 const darkIcon = computed(() => (isDark.value ? "dark_mode" : "light_mode"));
@@ -61,3 +64,14 @@ const changeLocale = (newLocale: string) => {
   document.querySelector("html")?.setAttribute("lang", newLocale);
 };
 </script>
+
+<i18n>
+{
+  "en": {
+    "test": "This is a Test"
+  },
+  "zh-Hans": {
+    "test": "这是一个测试"
+  }
+}
+</i18n>

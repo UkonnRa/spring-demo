@@ -80,7 +80,6 @@ public interface EntryService
   }
 
   @Override
-  @Transactional(readOnly = true)
   default List<EntryDto> convert(Collection<Entry> entities) {
     final var accountIds =
         entities.stream()

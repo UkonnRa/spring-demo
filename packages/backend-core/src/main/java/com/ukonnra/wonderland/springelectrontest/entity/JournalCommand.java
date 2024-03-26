@@ -1,7 +1,9 @@
 package com.ukonnra.wonderland.springelectrontest.entity;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.Nulls;
 import jakarta.annotation.Nullable;
 import java.util.Set;
 import java.util.UUID;
@@ -21,20 +23,22 @@ public sealed interface JournalCommand {
 
   record Update(
       UUID id,
-      @Nullable String name,
+      @JsonSetter(nulls = Nulls.AS_EMPTY) String name,
       @Nullable String description,
-      @Nullable String unit,
+      @JsonSetter(nulls = Nulls.AS_EMPTY) String unit,
       @Nullable Set<String> tags)
       implements JournalCommand {
     public static final String TYPE = "journals:update";
   }
 
-  record Delete(Set<UUID> id) implements JournalCommand {
+  record Delete(@JsonSetter(nulls = Nulls.AS_EMPTY) Set<UUID> id) implements JournalCommand {
     public static final String TYPE = "journals:delete";
   }
 
   record Batch(
-      @Nullable Set<Create> create, @Nullable Set<Update> update, @Nullable Set<UUID> delete)
+      @JsonSetter(nulls = Nulls.AS_EMPTY) Set<Create> create,
+      @JsonSetter(nulls = Nulls.AS_EMPTY) Set<Update> update,
+      @JsonSetter(nulls = Nulls.AS_EMPTY) Set<UUID> delete)
       implements JournalCommand {
     public static final String TYPE = "journals:batch";
   }

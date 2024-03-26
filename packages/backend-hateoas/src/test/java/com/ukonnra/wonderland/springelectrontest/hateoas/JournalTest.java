@@ -22,7 +22,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 @AutoConfigureDataJpa
 @ContextConfiguration(classes = {HateoasConfiguration.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class JournalTest {
+class JournalTest {
   private final MockMvc mockMvc;
   private final ObjectMapper objectMapper;
 
