@@ -2,6 +2,7 @@ package com.ukonnra.wonderland.springelectrontest.hateoas.controller;
 
 import com.ukonnra.wonderland.springelectrontest.entity.Entry;
 import com.ukonnra.wonderland.springelectrontest.entity.EntryDto;
+import com.ukonnra.wonderland.springelectrontest.entity.EntryItem;
 import com.ukonnra.wonderland.springelectrontest.hateoas.model.AccountModel;
 import com.ukonnra.wonderland.springelectrontest.hateoas.model.AccountsModel;
 import com.ukonnra.wonderland.springelectrontest.hateoas.model.EntriesModel;
@@ -139,7 +140,7 @@ public class EntryController {
       return ResponseEntity.notFound().build();
     }
 
-    final var accounts = entry.get().getItems().stream().map(Entry.Item::getAccount).toList();
+    final var accounts = entry.get().getItems().stream().map(EntryItem::getAccount).toList();
     final var dtos = this.accountService.convert(accounts);
 
     final var models = dtos.stream().map(this.accountController::toEntityModel).toList();

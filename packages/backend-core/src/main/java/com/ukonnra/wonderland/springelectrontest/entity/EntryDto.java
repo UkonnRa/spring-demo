@@ -107,11 +107,11 @@ public sealed interface EntryDto {
   }
 
   record Item(UUID accountId, BigDecimal amount, BigDecimal price) {
-    public Item(final Entry.Item item) {
+    public Item(final EntryItem item) {
       this(Objects.requireNonNull(item.getAccount().getId()), item.getAmount(), item.getPrice());
     }
 
-    public static Set<Item> of(final Collection<Entry.Item> items) {
+    public static Set<Item> of(final Collection<EntryItem> items) {
       return items.stream().map(Item::new).collect(Collectors.toSet());
     }
   }

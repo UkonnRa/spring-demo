@@ -2,14 +2,15 @@ package com.ukonnra.wonderland.springelectrontest.hateoas.controller;
 
 import com.ukonnra.wonderland.springelectrontest.entity.Account;
 import com.ukonnra.wonderland.springelectrontest.entity.Entry;
+import com.ukonnra.wonderland.springelectrontest.entity.EntryItem;
 import com.ukonnra.wonderland.springelectrontest.entity.Journal;
+import com.ukonnra.wonderland.springelectrontest.repository.EntryItemRepository;
 import com.ukonnra.wonderland.springelectrontest.service.AccountService;
 import com.ukonnra.wonderland.springelectrontest.service.EntryService;
 import com.ukonnra.wonderland.springelectrontest.service.JournalService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -32,12 +33,17 @@ public class InitController {
   private final JournalService journalService;
   private final AccountService accountService;
   private final EntryService entryService;
+  private final EntryItemRepository entryItemRepository;
 
   public InitController(
-      JournalService journalService, AccountService accountService, EntryService entryService) {
+      JournalService journalService,
+      AccountService accountService,
+      EntryService entryService,
+      EntryItemRepository entryItemRepository) {
     this.journalService = journalService;
     this.accountService = accountService;
     this.entryService = entryService;
+    this.entryItemRepository = entryItemRepository;
   }
 
   @PostMapping
@@ -94,13 +100,12 @@ public class InitController {
 
     final var accountByJournal =
         accounts.stream().collect(Collectors.groupingBy(Account::getJournal));
+
     var entries =
         accountByJournal.entrySet().stream()
             .flatMap(
                 pair -> {
                   final var journal = pair.getKey();
-                  final var list = new ArrayList<>(pair.getValue());
-
                   return Stream.of(
                       new Entry(
                           journal,
@@ -108,27 +113,45 @@ public class InitController {
                           String.format("Desc - %s - 1", journal.getName()),
                           Entry.Type.RECORD,
                           LocalDate.of(2023, 1, 1),
-                          Set.of("Tag 1", "Tag 2"),
-                          Set.of(
-                              new Entry.Item(list.get(0), BigDecimal.ONE, BigDecimal.TEN),
-                              new Entry.Item(
-                                  list.get(1), BigDecimal.TWO, BigDecimal.valueOf(3.5)))),
+                          Set.of("Tag 1", "Tag 2")),
                       new Entry(
                           journal,
                           String.format("%s - 2", journal.getName()),
                           String.format("Desc - %s - 2", journal.getName()),
                           Entry.Type.RECORD,
                           LocalDate.of(2023, 2, 1),
-                          Set.of("Tag 2", "Tag 4"),
-                          Set.of(
-                              new Entry.Item(list.get(1), BigDecimal.TEN, BigDecimal.TWO),
-                              new Entry.Item(
-                                  list.get(2), BigDecimal.ONE, BigDecimal.valueOf(7.1)))));
+                          Set.of("Tag 2", "Tag 4")));
                 })
             .toList();
     entries = this.entryService.getRepository().saveAllAndFlush(entries);
+
     for (final var entry : entries) {
       log.info("Entry: {}", entry);
     }
+
+    var entryItems =
+        entries.stream()
+            .flatMap(
+                entry -> {
+                  var accountItems = accountByJournal.get(entry.getJournal());
+                  if (accountItems == null || accountItems.size() < 3) {
+                    return Stream.empty();
+                  }
+
+                  if (entry.getName().endsWith("1")) {
+                    return Stream.of(
+                        new EntryItem(entry, accountItems.get(0), BigDecimal.ONE, BigDecimal.TEN),
+                        new EntryItem(
+                            entry, accountItems.get(1), BigDecimal.TWO, BigDecimal.valueOf(3.5)));
+                  } else {
+                    return Stream.of(
+                        new EntryItem(entry, accountItems.get(1), BigDecimal.TEN, BigDecimal.TWO),
+                        new EntryItem(
+                            entry, accountItems.get(2), BigDecimal.TWO, BigDecimal.valueOf(7.1)));
+                  }
+                })
+            .collect(Collectors.toSet());
+
+    this.entryItemRepository.saveAllAndFlush(entryItems);
   }
 }

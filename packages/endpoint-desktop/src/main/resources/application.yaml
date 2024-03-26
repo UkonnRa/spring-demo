@@ -6,7 +6,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
-    show-sql: false
+    show-sql: true
   threads:
     virtual:
       enabled: true
