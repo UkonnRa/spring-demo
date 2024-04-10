@@ -1,17 +1,17 @@
-import {
-  type AccountApi,
-  type AccountCommand,
-  type AccountQuery,
-  type AccountSort,
-  type AccountType,
-  type JournalQuery,
-  type Model,
+import type {
+  AccountApi,
+  AccountCommand,
+  AccountQuery,
+  AccountSort,
+  AccountType,
+  JournalQuery,
+  Model,
 } from "@core/services";
 import { Account } from "@core/services";
 import { toMap } from "@core/utils";
 import { AbstractWriteApi, type HttpMethod } from "./api";
 import { journalApi } from "./journal";
-import { isString } from "lodash";
+import isString from "lodash/isString";
 import { validate as uuidValidate } from "uuid";
 
 class AccountApiImpl extends AbstractWriteApi<Account, AccountQuery, AccountCommand, AccountSort> {
@@ -51,7 +51,7 @@ class AccountApiImpl extends AbstractWriteApi<Account, AccountQuery, AccountComm
   }
 
   protected parseCommand(
-    command: AccountCommand,
+    _command: AccountCommand,
   ): [string | null, HttpMethod, Record<string, unknown>] {
     return [null, "GET", {}];
   }

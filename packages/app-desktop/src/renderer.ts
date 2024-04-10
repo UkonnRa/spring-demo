@@ -18,7 +18,7 @@ const intervalId = setInterval(async () => {
   if (port && intervalId) {
     const resp = await fetch(`http://localhost:${port}/actuator/health`);
     const body = await resp.json();
-    if (resp.ok && body.status === "UP") {
+    if (resp.ok && typeof body === "object" && body.status === "UP") {
       await fetch(`http://localhost:${port}/init`, {
         method: "POST",
       });

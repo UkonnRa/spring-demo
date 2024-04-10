@@ -1,17 +1,15 @@
-import {
-  type AccountQuery,
-  type JournalQuery,
-  type EntryApi,
-  type EntryCommand,
-  type EntryItem,
-  type EntryQuery,
-  type EntrySort,
-  type EntryState,
-  type EntryType,
-  type Model,
-  type EntryStateItem,
-  ENTRY_TYPES,
-  type AccountCommand,
+import type {
+  AccountQuery,
+  JournalQuery,
+  EntryApi,
+  EntryCommand,
+  EntryItem,
+  EntryQuery,
+  EntrySort,
+  EntryState,
+  EntryType,
+  Model,
+  EntryStateItem,
 } from "@core/services";
 import { Entry } from "@core/services";
 import { AbstractWriteApi, type HttpMethod } from "./api";
@@ -19,7 +17,7 @@ import { journalApi } from "./journal";
 import { toMap } from "@core/utils";
 import { accountApi } from "./account";
 import { validate as uuidValidate } from "uuid";
-import { isString } from "lodash";
+import isString from "lodash/isString";
 
 class EntryApiImpl extends AbstractWriteApi<Entry, EntryQuery, EntryCommand, EntrySort> {
   protected override get modelType(): string {

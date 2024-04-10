@@ -7,7 +7,7 @@ plugins {
   id("checkstyle")
   id("jacoco")
 
-  id("com.github.spotbugs") version "6.0.10"
+  id("com.github.spotbugs") version "6.0.12"
   id("com.diffplug.spotless") version "6.25.0"
   id("com.github.ben-manes.versions") version "0.51.0"
   id("io.freefair.lombok") version "8.6"

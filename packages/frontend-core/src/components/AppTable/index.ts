@@ -63,7 +63,7 @@ export abstract class AbstractRow<M, F extends string = string> {
     return (
       !this._readonly &&
       !this._deleted &&
-      (field && !isEmpty(field) ? this.editableFields.includes(field as F) : true)
+      (field && !isEmpty(field) ? this.editableFields.includes(field) : true)
     );
   }
 

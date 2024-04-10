@@ -64,7 +64,7 @@ export class ParentRow extends AbstractRow<Entry, EditableField> {
       if (!isEqual(value, existing)) {
         return {
           state: "UPDATED",
-          value: value as V,
+          value: value,
           existing,
         };
       }
@@ -72,7 +72,7 @@ export class ParentRow extends AbstractRow<Entry, EditableField> {
 
     return {
       state: "NORMAL",
-      value: value as V,
+      value: value,
     };
   }
 
@@ -129,9 +129,7 @@ export class ChildRow extends AbstractRow<[Entry, EntryItem], ChildEditableField
       this.amount = item.amount;
       this.price = item.price ?? 1;
       if (entry.type === "Check") {
-        this.entryState = (entry.state as Record<string, EntryStateItem>)[
-          item.account
-        ] as EntryStateItem;
+        this.entryState = (entry.state as Record<string, EntryStateItem>)[item.account];
       }
     } else {
       this.accountId = "";

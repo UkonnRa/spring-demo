@@ -29,7 +29,6 @@ const props = defineProps<{
 const queryClient = useQueryClient();
 const readonly = ref(true);
 
-// eslint-disable-next-line sonarjs/cognitive-complexity
 const columnDefs = computed(() => {
   let results: ColDef<Row>[] = [
     {

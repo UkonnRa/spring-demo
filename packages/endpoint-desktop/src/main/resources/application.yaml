@@ -16,6 +16,13 @@ springdoc:
 app:
   hateoas:
     base-url: http://localhost:${WHITE_RABBIT_PORT:8080}
+# For actuator: https://stackoverflow.com/questions/37077487/enable-cors-for-health-endpoint-in-spring-boot-actuator
+management:
+  endpoints:
+    web:
+      cors:
+        allowed-origin-patterns: http://127.0.0.1:*,http://localhost:*
+        allowed-methods: GET
 logging:
   file:
     name: endpoint-desktop.log

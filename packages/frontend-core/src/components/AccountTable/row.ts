@@ -61,7 +61,7 @@ export class Row extends AbstractRow<Account, EditableField> {
       if (!isEqual(value, existing)) {
         return {
           state: "UPDATED",
-          value: value as V,
+          value: value,
           existing,
         };
       }
@@ -69,7 +69,7 @@ export class Row extends AbstractRow<Account, EditableField> {
 
     return {
       state: "NORMAL",
-      value: value as V,
+      value: value,
     };
   }
 

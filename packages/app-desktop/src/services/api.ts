@@ -1,6 +1,9 @@
 import type { Command, FindAllArgs, Query, ReadApi, Model, WriteApi } from "@core/services";
 import { Notify } from "quasar";
-import { get, isEmpty, isNumber, isObject, isObjectLike, isString, omitBy } from "lodash";
+import isEmpty from "lodash/isEmpty";
+import isNumber from "lodash/isNumber";
+import isObject from "lodash/isObject";
+import isString from "lodash/isString";
 
 export type HttpMethod = "GET" | "POST" | "DELETE" | "PATCH";
 
@@ -18,7 +21,6 @@ export abstract class AbstractReadApi<M extends Model, Q extends Query, S extend
 
   protected abstract convert(input: Record<string, unknown>): M | undefined;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async loadIncluded(_models: M[]): Promise<Map<string, Model>> {
     return new Map();
   }
@@ -44,7 +46,7 @@ export abstract class AbstractReadApi<M extends Model, Q extends Query, S extend
       return {
         status: body.status,
         title: body.title,
-        detail: `${body.detail}` ?? undefined,
+        detail: `${body.detail}`,
         properties: isObject(body.properties)
           ? (body.properties as Record<string, unknown>)
           : undefined,
