@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -132,5 +134,15 @@ class EntrySerdeTest {
   ]
 }""",
             JournalCommand.class));
+  }
+
+  @Test
+  void problemDetailSerde() throws JsonProcessingException {
+    final var longName =
+        IntStream.range(0, 50).mapToObj(i -> "Name " + i).collect(Collectors.joining(";"));
+    final var longTags =
+        IntStream.range(0, 20).mapToObj(i -> "Tag " + i).collect(Collectors.toSet());
+    final var command = new JournalCommand.Create(null, longName, "Desc 1", "Unit 1", longTags);
+    Assertions.assertNotEquals("", this.objectMapper.writeValueAsString(command));
   }
 }

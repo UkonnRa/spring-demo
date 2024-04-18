@@ -1,6 +1,7 @@
 package com.ukonnra.wonderland.springelectrontest.hateoas.controller;
 
 import com.ukonnra.wonderland.springelectrontest.entity.Journal;
+import com.ukonnra.wonderland.springelectrontest.entity.JournalCommand;
 import com.ukonnra.wonderland.springelectrontest.entity.JournalDto;
 import com.ukonnra.wonderland.springelectrontest.hateoas.model.JournalModel;
 import com.ukonnra.wonderland.springelectrontest.hateoas.model.JournalsModel;
@@ -16,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -57,5 +60,11 @@ public class JournalController {
 
     final var dto = this.journalService.convert(this.journalService.findOne(query));
     return ResponseEntity.of(dto.map(this::toEntityModel));
+  }
+
+  @PostMapping
+  public ResponseEntity<JournalModel> create(@RequestBody JournalCommand.Create command) {
+    final var result = this.journalService.handleCommand(command).stream().findFirst();
+    return ResponseEntity.of(this.journalService.convert(result).map(this::toEntityModel));
   }
 }

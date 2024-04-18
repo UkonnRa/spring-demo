@@ -14,5 +14,6 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok")
   annotationProcessor("org.hibernate.orm:hibernate-jpamodelgen")
 
+  testImplementation(project(":backend-test-suite"))
   testRuntimeOnly("com.h2database:h2")
 }

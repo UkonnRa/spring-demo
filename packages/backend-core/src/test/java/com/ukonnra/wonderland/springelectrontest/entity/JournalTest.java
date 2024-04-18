@@ -5,6 +5,7 @@ import com.ukonnra.wonderland.springelectrontest.error.EntityAlreadyExistsError;
 import com.ukonnra.wonderland.springelectrontest.error.Errors;
 import com.ukonnra.wonderland.springelectrontest.error.FieldOutOfRangeError;
 import com.ukonnra.wonderland.springelectrontest.service.JournalService;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.http.ProblemDetail;
 import org.springframework.test.context.ContextConfiguration;
 
 @DataJpaTest
@@ -53,7 +55,7 @@ public class JournalTest {
             () -> this.journalService.handleCommand(journalCommand));
     Assertions.assertEquals(
         Map.of("type", Journal.TYPE, "values", Map.of("name", journalCommand.name())),
-        error.getProperties());
+        error.getBody().getProperties());
   }
 
   @Test
@@ -63,7 +65,8 @@ public class JournalTest {
     final var errors =
         Assertions.assertThrows(
             Errors.class, () -> this.journalService.handleCommand(journalCommand));
-    for (final var error : errors.errors) {
+    for (final var error :
+        (Collection<ProblemDetail>) errors.getBody().getProperties().get("errors")) {
       Assertions.assertEquals(error.getTitle(), FieldOutOfRangeError.class.getSimpleName());
     }
   }

@@ -2,20 +2,24 @@ package com.ukonnra.wonderland.springelectrontest.error;
 
 import jakarta.annotation.Nullable;
 import java.util.Collection;
-import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.ErrorResponseException;
+import org.springframework.web.server.ResponseStatusException;
 
-public class Errors extends AbstractError {
-  public final Collection<? extends AbstractError> errors;
+public final class Errors extends ResponseStatusException {
+  private final Collection<? extends ResponseStatusException> errors;
 
-  private static <T extends AbstractError> Stream<AbstractError> flat(T error) {
+  private static <T extends ResponseStatusException> Stream<ResponseStatusException> flat(T error) {
     if (error instanceof Errors errors) {
       return errors.errors.stream().flatMap(Errors::flat);
     }
     return Stream.of(error);
   }
 
-  public static @Nullable AbstractError of(Collection<? extends AbstractError> errors) {
+  public static @Nullable ResponseStatusException of(
+      Collection<? extends ResponseStatusException> errors) {
     final var flatten = errors.stream().flatMap(Errors::flat).toList();
     if (flatten.isEmpty()) {
       return null;
@@ -26,19 +30,14 @@ public class Errors extends AbstractError {
     }
   }
 
-  protected Errors(Collection<? extends AbstractError> errors) {
-    super("Multiple errors found");
+  protected Errors(Collection<? extends ResponseStatusException> errors) {
+    super(HttpStatus.BAD_REQUEST, "Multiple errors found");
+    this.setTitle("Errors Found");
+
     this.errors = errors;
-  }
-
-  @Override
-  public String getTitle() {
-    return "Errors";
-  }
-
-  @Override
-  public Map<String, Object> getProperties() {
-    final var details = this.errors.stream().map(AbstractError::getJson).toList();
-    return Map.of("errors", details);
+    this.getBody()
+        .setProperty(
+            "errors",
+            errors.stream().map(ErrorResponseException::getBody).collect(Collectors.toSet()));
   }
 }
