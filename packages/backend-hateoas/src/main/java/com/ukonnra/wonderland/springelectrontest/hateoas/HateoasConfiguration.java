@@ -3,6 +3,7 @@ package com.ukonnra.wonderland.springelectrontest.hateoas;
 import com.ukonnra.wonderland.springelectrontest.CoreConfiguration;
 import com.ukonnra.wonderland.springelectrontest.entity.EntryDto;
 import com.ukonnra.wonderland.springelectrontest.entity.EntryState;
+import com.ukonnra.wonderland.springelectrontest.entity.JournalCommand;
 import com.ukonnra.wonderland.springelectrontest.hateoas.controller.AccountArgs;
 import com.ukonnra.wonderland.springelectrontest.hateoas.controller.EntryArgs;
 import com.ukonnra.wonderland.springelectrontest.hateoas.controller.HierarchyReportArgs;
@@ -56,13 +57,20 @@ public class HateoasConfiguration implements WebMvcConfigurer {
             .schema
             .addProperty("type", new StringSchema().addEnumItem("INVALID"));
 
+    final var journalCommandCreateSchema =
+        converters
+            .readAllAsResolvedSchema(JournalCommand.Create.class)
+            .schema
+            .title("JournalCommandCreate")
+            .addProperty("type", new StringSchema().addEnumItem(JournalCommand.Create.TYPE));
+
     SpringDocUtils.getConfig()
         .replaceWithSchema(
             EntryDto.Item.class, converters.readAllAsResolvedSchema(EntryDto.Item.class).schema)
         .replaceWithSchema(
             EntryState.class,
-            new Schema<EntryState>()
-                .oneOf(List.of(entryStateValidSchema, entryStateInvalidSchema)));
+            new Schema<EntryState>().oneOf(List.of(entryStateValidSchema, entryStateInvalidSchema)))
+        .replaceWithSchema(JournalCommand.Create.class, journalCommandCreateSchema);
   }
 
   private final HateoasQueryParamResolver queryParamResolver;

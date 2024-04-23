@@ -59,7 +59,7 @@ subprojects {
   }
 
   checkstyle {
-    toolVersion = "10.15.0"
+    toolVersion = "10.16.0"
   }
 
   tasks.withType<Checkstyle> {
