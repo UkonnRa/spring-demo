@@ -9,6 +9,8 @@ servers:
 tags:
   - name: Journals
     description: Actions for Journals
+  - name: Accounts
+    description: Actions for Accounts
 paths:
   /journals:
     get:
@@ -62,7 +64,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Journals"
+                $ref: "#/components/schemas/JournalsResponse"
     post:
       tags:
         - Journals
@@ -82,7 +84,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Journal"
+                $ref: "#/components/schemas/JournalResponse"
     patch:
       tags:
         - Journals
@@ -102,10 +104,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Journals"
+                $ref: "#/components/schemas/JournalsResponse"
   /journals/{id}:
-    summary: Journal
-    description: Actions for a Journal.
     get:
       tags:
         - Journals
@@ -124,7 +124,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Journal"
+                $ref: "#/components/schemas/JournalResponse"
         404:
           description: Not Found
     patch:
@@ -153,7 +153,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Journal"
+                $ref: "#/components/schemas/JournalResponse"
         404:
           description: Not Found
     delete:
@@ -172,17 +172,105 @@ paths:
       responses:
         204:
           description: Deleted successfully, no content.
+  /accounts:
+    get:
+      tags:
+        - Accounts
+      summary: Get multiple Accounts
+      description: Get multiple Accounts based on the given filters.
+      operationId: findAllAccounts
+      parameters:
+        - name: filter[id]
+          in: query
+          description: Find Accounts by IDs
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              format: uuid
+        - name: filter[name]
+          in: query
+          description: Find Accounts by names, exactly matching
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+        - name: filter[unit]
+          in: query
+          description: Find Accounts by units, exactly matching
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+        - name: filter[type]
+          in: query
+          description: Find Accounts by types
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              $ref: "#/components/schemas/AccountType"
+        - name: filter[tag]
+          in: query
+          description: Find Accounts by tag, exactly matching
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+        - name: filter[fullText]
+          in: query
+          description: Find Accounts by full-text searching on `name`,  `description` and `tags`
+          schema:
+            type: string
+      responses:
+        200:
+          description: Receive all Accounts by the given filter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountsResponse"
+    post:
+      tags:
+        - Accounts
+      summary: Create a Account
+      description: Create Account by the given command.
+      operationId: createAccount
+      requestBody:
+        required: true
+        description: Create Account Command.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountCommandCreate"
+      responses:
+        200:
+          description: Created successfully and return the generated Account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+
 components:
   schemas:
-    Journal:
+    # === Common Schemas ===
+    Link:
+      type: object
+      required:
+        - href
+      properties:
+        href:
+          type: string
+          format: uri
+
+    AbstractModel:
       type: object
       required:
         - id
         - createdDate
-        - name
-        - description
-        - unit
-        - tags
       properties:
         id:
           type: string
@@ -190,37 +278,35 @@ components:
         createdDate:
           type: string
           format: date-time
-        name:
-          type: string
-          minLength: 2
-          maxLength: 127
-          example: New Journal
-        description:
-          type: string
-          maxLength: 1023
-          default: ""
-        unit:
-          type: string
-          minLength: 2
-          maxLength: 127
-          example: USD
-        tags:
-          type: array
-          maxItems: 15
-          uniqueItems: true
-          default: []
-          items:
-            type: string
-            minLength: 2
-            maxLength: 127
-    Journals:
+
+    # === Journals ===
+
+    ## --- Journal Common ---
+
+    JournalLinks:
       type: object
       properties:
-        values:
-          type: array
-          items:
-            $ref: "#/components/schemas/Journal"
-    JournalCommandCreate:
+        self:
+          $ref: "#/components/schemas/Link"
+
+    JournalsResponse:
+      allOf:
+        - $ref: "#/components/schemas/Journals"
+        - type: object
+          properties:
+            _links:
+              $ref: "#/components/schemas/JournalLinks"
+    JournalResponse:
+      allOf:
+        - $ref: "#/components/schemas/Journal"
+        - type: object
+          properties:
+            _links:
+              $ref: "#/components/schemas/JournalLinks"
+
+    ## --- Journal Entity ---
+
+    JournalAttributes:
       type: object
       required:
         - name
@@ -228,9 +314,6 @@ components:
         - unit
         - tags
       properties:
-        id:
-          type: string
-          format: uuid
         name:
           type: string
           minLength: 2
@@ -249,35 +332,41 @@ components:
           type: array
           maxItems: 15
           uniqueItems: true
-          default: []
+          default: [ ]
           items:
             type: string
             minLength: 2
             maxLength: 127
-    JournalCommandUpdate:
+
+    Journal:
+      allOf:
+        - $ref: "#/components/schemas/AbstractModel"
+        - $ref: "#/components/schemas/JournalAttributes"
+
+    Journals:
       type: object
+      required:
+        - values
       properties:
-        name:
-          type: string
-          minLength: 2
-          maxLength: 127
-          example: New Journal
-        description:
-          type: string
-          maxLength: 1023
-        unit:
-          type: string
-          minLength: 2
-          maxLength: 127
-          example: USD
-        tags:
+        values:
           type: array
-          maxItems: 15
-          uniqueItems: true
           items:
-            type: string
-            minLength: 2
-            maxLength: 127
+            $ref: "#/components/schemas/Journal"
+
+    ## --- Journal Commands ---
+    JournalCommandCreate:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+        - $ref: "#/components/schemas/JournalAttributes"
+
+    JournalCommandUpdate:
+      $ref: "#/components/schemas/JournalAttributes"
+      required: [ ]
+
     JournalCommandBatch:
       type: object
       properties:
@@ -301,6 +390,147 @@ components:
                     type: string
                     format: uuid
               - $ref: "#/components/schemas/JournalCommandUpdate"
+        delete:
+          type: array
+          default: []
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+
+    # === Accounts ===
+
+    ## --- Account Common ---
+    AccountType:
+      type: string
+      enum: [ INCOME, EXPENSE, ASSET, LIABILITY, EQUITY, ]
+    AccountLinks:
+      type: object
+      properties:
+        self:
+          $ref: "#/components/schemas/Link"
+        journal:
+          $ref: "#/components/schemas/Link"
+
+    AccountEmbedded:
+      type: object
+      properties:
+        journals:
+          type: array
+          items:
+            $ref: "#/components/schemas/Journal"
+
+    AccountResponse:
+      allOf:
+        - $ref: "#/components/schemas/Account"
+        - type: object
+          properties:
+            _links:
+              $ref: "#/components/schemas/AccountLinks"
+            _embedded:
+              $ref: "#/components/schemas/AccountEmbedded"
+
+    AccountsResponse:
+      allOf:
+        - $ref: "#/components/schemas/Accounts"
+        - type: object
+          properties:
+            _links:
+              $ref: "#/components/schemas/AccountLinks"
+            _embedded:
+              $ref: "#/components/schemas/AccountEmbedded"
+
+    ## --- Account Entity ---
+
+    AccountAttributes:
+      type: object
+      required:
+        - name
+        - description
+        - unit
+        - type
+        - tags
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 127
+          example: New Account
+        description:
+          type: string
+          maxLength: 1023
+          default: ""
+        unit:
+          type: string
+          minLength: 2
+          maxLength: 127
+          example: USD
+        type:
+          $ref: "#/components/schemas/AccountType"
+        tags:
+          type: array
+          maxItems: 15
+          uniqueItems: true
+          default: [ ]
+          items:
+            type: string
+            minLength: 2
+            maxLength: 127
+
+    Account:
+      allOf:
+        - $ref: "#/components/schemas/AbstractModel"
+        - $ref: "#/components/schemas/AccountAttributes"
+
+
+
+    Accounts:
+      type: object
+      required:
+        - values
+      properties:
+        values:
+          type: array
+          items:
+            $ref: "#/components/schemas/Account"
+
+    ## --- Account Commands ---
+    AccountCommandCreate:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+        - $ref: "#/components/schemas/AccountAttributes"
+
+    AccountCommandUpdate:
+      $ref: "#/components/schemas/AccountAttributes"
+      required: [ ]
+
+    AccountCommandBatch:
+      type: object
+      properties:
+        create:
+          type: array
+          default: []
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/AccountCommandCreate"
+        update:
+          type: array
+          default: []
+          uniqueItems: true
+          items:
+            allOf:
+              - type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+              - $ref: "#/components/schemas/AccountCommandUpdate"
         delete:
           type: array
           default: []

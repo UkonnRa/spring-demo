@@ -7,14 +7,14 @@ plugins {
   id("checkstyle")
   id("jacoco")
 
-  id("com.github.spotbugs") version "6.0.12"
+  id("com.github.spotbugs") version "6.0.14"
   id("com.diffplug.spotless") version "6.25.0"
   id("com.github.ben-manes.versions") version "0.51.0"
   id("io.freefair.lombok") version "8.6"
   id("org.sonarqube") version "5.0.0.4638"
 
   id("org.springframework.boot") version "3.2.5" apply false
-  id("io.spring.dependency-management") version "1.1.4"
+  id("io.spring.dependency-management") version "1.1.5"
   id("org.graalvm.buildtools.native") version "0.10.1" apply false
 }
 
