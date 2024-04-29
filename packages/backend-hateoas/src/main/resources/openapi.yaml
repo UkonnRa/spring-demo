@@ -1,0 +1,310 @@
+openapi: 3.1.0
+info:
+  title: Spring Electron Test
+  description: Spring Electron Test OpenAPI Doc
+  version: 0.1.0
+servers:
+  - name: Localhost
+    url: 'http://localhost:8080'
+tags:
+  - name: Journals
+    description: Actions for Journals
+paths:
+  /journals:
+    get:
+      tags:
+        - Journals
+      summary: Get multiple Journals
+      description: Get multiple Journals based on the given filters.
+      operationId: findAllJournals
+      parameters:
+        - name: filter[id]
+          in: query
+          description: Find Journals by IDs
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              format: uuid
+        - name: filter[name]
+          in: query
+          description: Find Journals by names, exactly matching
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+        - name: filter[unit]
+          in: query
+          description: Find Journals by units, exactly matching
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+        - name: filter[tag]
+          in: query
+          description: Find Journals by tag, exactly matching
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+        - name: filter[fullText]
+          in: query
+          description: Find Journals by full-text searching on `name`,  `description` and `tags`
+          schema:
+            type: string
+      responses:
+        200:
+          description: Receive all Journals by the given filter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Journals"
+    post:
+      tags:
+        - Journals
+      summary: Create a Journal
+      description: Create Journal by the given command.
+      operationId: createJournal
+      requestBody:
+        required: true
+        description: Create Journal Command.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JournalCommandCreate"
+      responses:
+        200:
+          description: Created successfully and return the generated Journal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Journal"
+    patch:
+      tags:
+        - Journals
+      summary: Batch Update multiple Journals
+      description: Batch Update Journals by the given command.
+      operationId: batchJournals
+      requestBody:
+        required: true
+        description: Batch Journal Command.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JournalCommandBatch"
+      responses:
+        200:
+          description: Batch updated successfully and return the generated Journals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Journals"
+  /journals/{id}:
+    summary: Journal
+    description: Actions for a Journal.
+    get:
+      tags:
+        - Journals
+      summary: Get one Journal
+      description: Get one Journals by ID.
+      operationId: findJournalById
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Receive one Journal by the given ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Journal"
+        404:
+          description: Not Found
+    patch:
+      tags:
+        - Journals
+      summary: Update a Journal
+      description: Update a Journal by ID based on the given command.
+      operationId: updateJournal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        description: Update Journal Command.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JournalCommandUpdate"
+      responses:
+        200:
+          description: Updated successfully and return the updated Journal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Journal"
+        404:
+          description: Not Found
+    delete:
+      tags:
+        - Journals
+      summary: Delete a Journal
+      description: Delete a Journal by ID.
+      operationId: deleteJournal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        204:
+          description: Deleted successfully, no content.
+components:
+  schemas:
+    Journal:
+      type: object
+      required:
+        - id
+        - createdDate
+        - name
+        - description
+        - unit
+        - tags
+      properties:
+        id:
+          type: string
+          format: uuid
+        createdDate:
+          type: string
+          format: date-time
+        name:
+          type: string
+          minLength: 2
+          maxLength: 127
+          example: New Journal
+        description:
+          type: string
+          maxLength: 1023
+          default: ""
+        unit:
+          type: string
+          minLength: 2
+          maxLength: 127
+          example: USD
+        tags:
+          type: array
+          maxItems: 15
+          uniqueItems: true
+          default: []
+          items:
+            type: string
+            minLength: 2
+            maxLength: 127
+    Journals:
+      type: object
+      properties:
+        values:
+          type: array
+          items:
+            $ref: "#/components/schemas/Journal"
+    JournalCommandCreate:
+      type: object
+      required:
+        - name
+        - description
+        - unit
+        - tags
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 2
+          maxLength: 127
+          example: New Journal
+        description:
+          type: string
+          maxLength: 1023
+          default: ""
+        unit:
+          type: string
+          minLength: 2
+          maxLength: 127
+          example: USD
+        tags:
+          type: array
+          maxItems: 15
+          uniqueItems: true
+          default: []
+          items:
+            type: string
+            minLength: 2
+            maxLength: 127
+    JournalCommandUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 127
+          example: New Journal
+        description:
+          type: string
+          maxLength: 1023
+        unit:
+          type: string
+          minLength: 2
+          maxLength: 127
+          example: USD
+        tags:
+          type: array
+          maxItems: 15
+          uniqueItems: true
+          items:
+            type: string
+            minLength: 2
+            maxLength: 127
+    JournalCommandBatch:
+      type: object
+      properties:
+        create:
+          type: array
+          default: []
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/JournalCommandCreate"
+        update:
+          type: array
+          default: []
+          uniqueItems: true
+          items:
+            allOf:
+              - type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+              - $ref: "#/components/schemas/JournalCommandUpdate"
+        delete:
+          type: array
+          default: []
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
