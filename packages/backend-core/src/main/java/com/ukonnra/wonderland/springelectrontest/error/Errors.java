@@ -25,7 +25,7 @@ public final class Errors extends ResponseStatusException {
     if (flatten.isEmpty()) {
       return null;
     } else if (flatten.size() == 1) {
-      return flatten.getFirst();
+      return flatten.get(0);
     } else {
       return new Errors(flatten);
     }

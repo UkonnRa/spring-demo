@@ -7,15 +7,15 @@ plugins {
   id("checkstyle")
   id("jacoco")
 
-  id("com.github.spotbugs") version "6.0.14"
+  id("com.github.spotbugs") version "6.0.18"
   id("com.diffplug.spotless") version "6.25.0"
   id("com.github.ben-manes.versions") version "0.51.0"
   id("io.freefair.lombok") version "8.6"
-  id("org.sonarqube") version "5.0.0.4638"
+  id("org.sonarqube") version "5.1.0.4882"
 
-  id("org.springframework.boot") version "3.2.5" apply false
+  id("org.springframework.boot") version "3.3.1" apply false
   id("io.spring.dependency-management") version "1.1.5"
-  id("org.graalvm.buildtools.native") version "0.10.1" apply false
+  id("org.graalvm.buildtools.native") version "0.10.2" apply false
 }
 
 group = "com.ukonnra.wonderland"
@@ -59,7 +59,7 @@ subprojects {
   }
 
   checkstyle {
-    toolVersion = "10.16.0"
+    toolVersion = "10.17.0"
   }
 
   tasks.withType<Checkstyle> {

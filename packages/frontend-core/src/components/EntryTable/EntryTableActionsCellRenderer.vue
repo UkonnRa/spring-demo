@@ -34,7 +34,7 @@ const disableDelete = computed((): boolean => {
 
     const parentData = parentNode.data;
     const existingItems = uniq(
-      parentNode.allLeafChildren
+      (parentNode.allLeafChildren ?? [])
         .map((child) => child.data)
         .filter(
           (data): data is ChildRow =>

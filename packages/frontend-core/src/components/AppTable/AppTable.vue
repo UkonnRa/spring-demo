@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { AgGridVue } from "@ag-grid-community/vue3";
 import type { GridOptions } from "@ag-grid-community/core";
-import { GridApi } from "@ag-grid-community/core";
+import { type GridApi } from "@ag-grid-community/core";
 import { useQuasar } from "quasar";
 import { computed, reactive, ref, watch } from "vue";
 import omitBy from "lodash/omitBy";

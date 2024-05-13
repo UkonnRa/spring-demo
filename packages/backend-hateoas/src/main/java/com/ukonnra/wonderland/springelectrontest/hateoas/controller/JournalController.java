@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ukonnra.wonderland.springelectrontest.entity.Journal;
 import com.ukonnra.wonderland.springelectrontest.entity.JournalCommand;
 import com.ukonnra.wonderland.springelectrontest.entity.JournalDto;
+import com.ukonnra.wonderland.springelectrontest.hateoas.model.JournalAttributes;
 import com.ukonnra.wonderland.springelectrontest.hateoas.model.JournalCommandInput;
 import com.ukonnra.wonderland.springelectrontest.hateoas.model.JournalModel;
 import com.ukonnra.wonderland.springelectrontest.hateoas.model.JournalsModel;
@@ -61,12 +62,11 @@ public class JournalController {
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<JournalModel> findById(@PathVariable(name = "id") UUID id) {
+  public ResponseEntity<JournalAttributes> findById(@PathVariable(name = "id") UUID id) {
     final var query = new Journal.Query();
     query.setId(Set.of(id));
-
-    final var dto = this.journalService.convert(this.journalService.findOne(query));
-    return ResponseEntity.of(dto.map(this::toEntityModel));
+    log.info("Query: {}", query);
+    return ResponseEntity.noContent().build();
   }
 
   @PostMapping

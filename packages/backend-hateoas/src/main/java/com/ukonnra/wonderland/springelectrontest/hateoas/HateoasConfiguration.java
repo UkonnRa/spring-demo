@@ -10,11 +10,13 @@ import com.ukonnra.wonderland.springelectrontest.hateoas.controller.HierarchyRep
 import com.ukonnra.wonderland.springelectrontest.hateoas.controller.JournalArgs;
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.SpecVersion;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.servers.Server;
 import java.util.List;
+import java.util.Optional;
 import org.springdoc.core.utils.SpringDocUtils;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -82,8 +84,10 @@ public class HateoasConfiguration implements WebMvcConfigurer {
   @Bean
   public OpenAPI openapi(
       final HateoasProperties properties, final BuildProperties buildProperties) {
-    return new OpenAPI()
-        .info(new Info().title("Spring Electron Test API").version(buildProperties.getVersion()))
+    final var appVersion = Optional.ofNullable(buildProperties.getVersion()).orElse("development");
+    return new OpenAPI(SpecVersion.V31)
+        .openapi("3.1.0")
+        .info(new Info().title("Spring Electron Test API").version(appVersion))
         .addServersItem(new Server().url(properties.baseUrl()));
   }
 
