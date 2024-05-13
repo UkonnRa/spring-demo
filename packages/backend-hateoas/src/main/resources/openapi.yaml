@@ -11,6 +11,10 @@ tags:
     description: Actions for Journals
   - name: Accounts
     description: Actions for Accounts
+  - name: Entries
+    description: Actions for Entries
+  - name: Hierarchy Reports
+    description: Actions for Hierarchy Reports
 paths:
   /journals:
     get:
@@ -253,6 +257,283 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AccountResponse"
+    patch:
+      tags:
+        - Accounts
+      summary: Batch Update multiple Accounts
+      description: Batch Update Accounts by the given command.
+      operationId: batchAccounts
+      requestBody:
+        required: true
+        description: Batch Accounts Command.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountCommandBatch"
+      responses:
+        200:
+          description: Batch updated successfully and return the generated Accounts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountsResponse"
+  /accounts/{id}:
+    get:
+      tags:
+        - Accounts
+      summary: Get one Account
+      description: Get one Account by ID.
+      operationId: findAccountById
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Receive one Account by the given ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        404:
+          description: Not Found
+    patch:
+      tags:
+        - Accounts
+      summary: Update a Account
+      description: Update a Account by ID based on the given command.
+      operationId: updateAccount
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        description: Update Account Command.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountCommandUpdate"
+      responses:
+        200:
+          description: Updated successfully and return the updated Account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        404:
+          description: Not Found
+    delete:
+      tags:
+        - Accounts
+      summary: Delete an Account
+      description: Delete an Account by ID.
+      operationId: deleteAccount
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        204:
+          description: Deleted successfully, no content.
+  /entries:
+    get:
+      tags:
+        - Entries
+      summary: Get multiple Entries
+      description: Get multiple Entries based on the given filters.
+      operationId: findAllEntries
+      parameters:
+        - name: filter[id]
+          in: query
+          description: Find Entries by IDs
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              format: uuid
+        - name: filter[journal]
+          in: query
+          description: Find Entries by Journal IDs
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              format: uuid
+        - name: filter[account]
+          in: query
+          description: Find Entries by Account IDs
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              format: uuid
+        - name: filter[name]
+          in: query
+          description: Find Entries by names, exactly matching
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+        - name: filter[type]
+          in: query
+          required: false
+          description: Find Entries by the type
+          schema:
+            $ref: "#/components/schemas/EntryType"
+        - name: filter[start]
+          in: query
+          required: false
+          description: Find Entries after the date
+          schema:
+            type: string
+            format: date
+        - name: filter[end]
+          in: query
+          required: false
+          description: Find Entries before the date
+          schema:
+            type: string
+            format: date
+        - name: filter[tag]
+          in: query
+          description: Find Entries by tag, exactly matching
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+        - name: filter[fullText]
+          in: query
+          description: Find Entries by full-text searching on `name` and `tags`
+          schema:
+            type: string
+      responses:
+        200:
+          description: Receive all Entries by the given filter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntriesResponse"
+    post:
+      tags:
+        - Entries
+      summary: Create an Entry
+      description: Create an Entry by the given command.
+      operationId: createEntry
+      requestBody:
+        required: true
+        description: Create Entry Command.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EntryCommandCreate"
+      responses:
+        200:
+          description: Created successfully and return the generated Entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntryResponse"
+    patch:
+      tags:
+        - Entries
+      summary: Batch Update multiple Entries
+      description: Batch Update Entries by the given command.
+      operationId: batchEntries
+      requestBody:
+        required: true
+        description: Batch Entries Command.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EntryCommandBatch"
+      responses:
+        200:
+          description: Batch updated successfully and return the generated Entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntriesResponse"
+  /entries/{id}:
+    get:
+      tags:
+        - Entries
+      summary: Get one Entry
+      description: Get one Entry by ID.
+      operationId: findEntryById
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Receive one Entry by the given ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntryResponse"
+        404:
+          description: Not Found
+    patch:
+      tags:
+        - Entries
+      summary: Update a Entry
+      description: Update a Entry by ID based on the given command.
+      operationId: updateEntry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        description: Update Entry Command.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EntryCommandUpdate"
+      responses:
+        200:
+          description: Updated successfully and return the updated Entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntryResponse"
+        404:
+          description: Not Found
+    delete:
+      tags:
+        - Entries
+      summary: Delete an Entry
+      description: Delete an Entry by ID.
+      operationId: deleteEntry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        204:
+          description: Deleted successfully, no content.
 
 components:
   schemas:
@@ -404,6 +685,7 @@ components:
     AccountType:
       type: string
       enum: [ INCOME, EXPENSE, ASSET, LIABILITY, EQUITY, ]
+
     AccountLinks:
       type: object
       properties:
@@ -441,6 +723,15 @@ components:
               $ref: "#/components/schemas/AccountEmbedded"
 
     ## --- Account Entity ---
+
+    AccountRelationships:
+      type: object
+      required:
+        - journalId
+      properties:
+        journalId:
+          type: string
+          format: uuid
 
     AccountAttributes:
       type: object
@@ -481,8 +772,7 @@ components:
       allOf:
         - $ref: "#/components/schemas/AbstractModel"
         - $ref: "#/components/schemas/AccountAttributes"
-
-
+        - $ref: "#/components/schemas/AccountRelationships"
 
     Accounts:
       type: object
@@ -503,6 +793,7 @@ components:
               type: string
               format: uuid
         - $ref: "#/components/schemas/AccountAttributes"
+        - $ref: "#/components/schemas/AccountRelationships"
 
     AccountCommandUpdate:
       $ref: "#/components/schemas/AccountAttributes"
@@ -531,6 +822,189 @@ components:
                     type: string
                     format: uuid
               - $ref: "#/components/schemas/AccountCommandUpdate"
+        delete:
+          type: array
+          default: []
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+
+    # === Entry ===
+
+    ## --- Entry Common ---
+
+    EntryType:
+      type: string
+      enum: [ RECORD, CHECK ]
+
+    EntryItem:
+      type: object
+      required:
+        - accountId
+        - amount
+        - price
+      properties:
+        accountId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: float
+          minimum: 0
+        price:
+          type: number
+          format: float
+          minimum: 0
+
+    EntryLinks:
+      type: object
+      properties:
+        self:
+          $ref: "#/components/schemas/Link"
+        journal:
+          $ref: "#/components/schemas/Link"
+        account:
+          $ref: "#/components/schemas/Link"
+
+    EntryEmbedded:
+      type: object
+      properties:
+        journals:
+          type: array
+          items:
+            $ref: "#/components/schemas/Journal"
+        accounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Account"
+
+    EntryResponse:
+      allOf:
+        - $ref: "#/components/schemas/Entry"
+        - type: object
+          properties:
+            _links:
+              $ref: "#/components/schemas/EntryLinks"
+            _embedded:
+              $ref: "#/components/schemas/EntryEmbedded"
+
+    EntriesResponse:
+      allOf:
+        - $ref: "#/components/schemas/Entries"
+        - type: object
+          properties:
+            _links:
+              $ref: "#/components/schemas/EntryLinks"
+            _embedded:
+              $ref: "#/components/schemas/EntryEmbedded"
+
+    ## --- Entry Entity ---
+
+    EntryRelationships:
+      type: object
+      required:
+        - journalId
+      properties:
+        journalId:
+          type: string
+          format: uuid
+
+
+    EntryAttributes:
+      type: object
+      required:
+        - name
+        - description
+        - type
+        - date
+        - tags
+        - items
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 127
+          example: New Entry
+        description:
+          type: string
+          maxLength: 1023
+          default: ""
+        type:
+          $ref: "#/components/schemas/EntryType"
+        date:
+          type: string
+          format: date
+        tags:
+          type: array
+          maxItems: 15
+          uniqueItems: true
+          default: [ ]
+          items:
+            type: string
+            minLength: 2
+            maxLength: 127
+        items:
+          type: array
+          uniqueItems: true
+          default: [ ]
+          items:
+            $ref: "#/components/schemas/EntryItem"
+
+    Entry:
+      allOf:
+        - $ref: "#/components/schemas/AbstractModel"
+        - $ref: "#/components/schemas/EntryAttributes"
+        - $ref: "#/components/schemas/EntryRelationships"
+
+    Entries:
+      type: object
+      required:
+        - values
+      properties:
+        values:
+          type: array
+          items:
+            $ref: "#/components/schemas/Entry"
+
+    ## --- Entry Commands ---
+    EntryCommandCreate:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+        - $ref: "#/components/schemas/EntryAttributes"
+        - $ref: "#/components/schemas/EntryRelationships"
+
+    EntryCommandUpdate:
+      $ref: "#/components/schemas/EntryAttributes"
+      required: [ ]
+
+    EntryCommandBatch:
+      type: object
+      properties:
+        create:
+          type: array
+          default: []
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/EntryCommandCreate"
+        update:
+          type: array
+          default: []
+          uniqueItems: true
+          items:
+            allOf:
+              - type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+              - $ref: "#/components/schemas/EntryCommandUpdate"
         delete:
           type: array
           default: []
