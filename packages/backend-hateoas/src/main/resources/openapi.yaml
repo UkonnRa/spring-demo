@@ -5,7 +5,7 @@ info:
   version: 0.1.0
 servers:
   - name: Localhost
-    url: 'http://localhost:8080'
+    url: "http://localhost:8080"
 tags:
   - name: Journals
     description: Actions for Journals
@@ -534,6 +534,71 @@ paths:
       responses:
         204:
           description: Deleted successfully, no content.
+  /hierarchy-reports:
+    get:
+      tags:
+        - Hierarchy Reports
+      summary: Get multiple Hierarchy Reports
+      description: Get multiple Hierarchy Reports based on the given filters.
+      operationId: findAllHierarchyReports
+      parameters:
+        - name: filter[id]
+          in: query
+          description: Find Hierarchy Reports by IDs
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+        - name: filter[journal]
+          in: query
+          description: Find Hierarchy Reports by Journal IDs
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+              format: uuid
+        - name: filter[start]
+          in: query
+          description: Find Hierarchy Reports by entries after the date
+          schema:
+            type: string
+            format: date
+        - name: filter[end]
+          in: query
+          description: Find Hierarchy Reports by entries before the date
+          schema:
+            type: string
+            format: date
+      responses:
+        200:
+          description: Receive all Hierarchy Reports by the given filter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HierarchyReportsResponse"
+  /hierarchy-reports/{id}:
+    get:
+      tags:
+        - Hierarchy Reports
+      summary: Get one Hierarchy Report
+      description: Get one Hierarchy Report by ID.
+      operationId: findHierarchyReportById
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+      responses:
+        200:
+          description: Receive one Hierarchy Report by the given ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HierarchyReportResponse"
+        404:
+          description: Not Found
 
 components:
   schemas:
@@ -613,7 +678,7 @@ components:
           type: array
           maxItems: 15
           uniqueItems: true
-          default: [ ]
+          default: []
           items:
             type: string
             minLength: 2
@@ -646,7 +711,7 @@ components:
 
     JournalCommandUpdate:
       $ref: "#/components/schemas/JournalAttributes"
-      required: [ ]
+      required: []
 
     JournalCommandBatch:
       type: object
@@ -684,7 +749,7 @@ components:
     ## --- Account Common ---
     AccountType:
       type: string
-      enum: [ INCOME, EXPENSE, ASSET, LIABILITY, EQUITY, ]
+      enum: [INCOME, EXPENSE, ASSET, LIABILITY, EQUITY]
 
     AccountLinks:
       type: object
@@ -762,7 +827,7 @@ components:
           type: array
           maxItems: 15
           uniqueItems: true
-          default: [ ]
+          default: []
           items:
             type: string
             minLength: 2
@@ -797,7 +862,7 @@ components:
 
     AccountCommandUpdate:
       $ref: "#/components/schemas/AccountAttributes"
-      required: [ ]
+      required: []
 
     AccountCommandBatch:
       type: object
@@ -836,7 +901,7 @@ components:
 
     EntryType:
       type: string
-      enum: [ RECORD, CHECK ]
+      enum: [RECORD, CHECK]
 
     EntryItem:
       type: object
@@ -910,7 +975,6 @@ components:
           type: string
           format: uuid
 
-
     EntryAttributes:
       type: object
       required:
@@ -939,7 +1003,7 @@ components:
           type: array
           maxItems: 15
           uniqueItems: true
-          default: [ ]
+          default: []
           items:
             type: string
             minLength: 2
@@ -947,7 +1011,7 @@ components:
         items:
           type: array
           uniqueItems: true
-          default: [ ]
+          default: []
           items:
             $ref: "#/components/schemas/EntryItem"
 
@@ -980,7 +1044,7 @@ components:
 
     EntryCommandUpdate:
       $ref: "#/components/schemas/EntryAttributes"
-      required: [ ]
+      required: []
 
     EntryCommandBatch:
       type: object
@@ -1012,3 +1076,91 @@ components:
           items:
             type: string
             format: uuid
+
+    # === Hierarchy Report ===
+
+    ## --- Hierarchy Report Common ---
+
+    HierarchyReportLinks:
+      type: object
+      properties:
+        self:
+          $ref: "#/components/schemas/Link"
+        journal:
+          $ref: "#/components/schemas/Link"
+        accounts:
+          $ref: "#/components/schemas/Link"
+
+    HierarchyReportEmbedded:
+      type: object
+      properties:
+        journals:
+          type: array
+          items:
+            $ref: "#/components/schemas/Journal"
+        accounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Account"
+
+    HierarchyReportResponse:
+      allOf:
+        - $ref: "#/components/schemas/HierarchyReport"
+        - type: object
+          properties:
+            _links:
+              $ref: "#/components/schemas/HierarchyReportLinks"
+            _embedded:
+              $ref: "#/components/schemas/HierarchyReportEmbedded"
+
+    HierarchyReportsResponse:
+      allOf:
+        - $ref: "#/components/schemas/HierarchyReports"
+        - type: object
+          properties:
+            _links:
+              $ref: "#/components/schemas/HierarchyReportLinks"
+            _embedded:
+              $ref: "#/components/schemas/HierarchyReportEmbedded"
+
+    ## --- Hierarchy Report Entity ---
+
+    HierarchyReport:
+      type: object
+      required:
+        - id
+        - journalId
+        - prefix
+        - unit
+        - values
+      properties:
+        id:
+          type: string
+          format: uuid
+        journalId:
+          type: string
+          format: uuid
+        prefix:
+          type: string
+          minLength: 2
+          example: Account
+        unit:
+          type: string
+          minLength: 2
+          maxLength: 127
+          example: USD
+        values:
+          type: object
+          additionalProperties:
+            type: number
+            format: float
+
+    HierarchyReports:
+      type: object
+      required:
+        - values
+      properties:
+        values:
+          type: array
+          items:
+            $ref: "#/components/schemas/HierarchyReport"

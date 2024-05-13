@@ -15,7 +15,7 @@ import type {
   Query,
   ReadApi,
 } from "@core/services";
-import { computed, type MaybeRef, toValue } from "vue";
+import { type MaybeRef, toValue } from "vue";
 import useInject from "./useInject";
 import {
   Account,
@@ -50,21 +50,18 @@ const useAll = <
   options?: UseQueryOptions<[M[], Map<string, Model>]>,
 ) => {
   const api = useInject<A>(key);
-  const enabled = computed(() => !!toValue(args));
-  const queryKey = computed<[string, FindAllArgs<Q, S> | undefined]>(() => [
-    methodName,
-    toValue(args),
-  ]);
+  const value = toValue(args);
 
   return useQuery({
-    queryKey: queryKey,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    queryKey: [methodName, value] as any,
     queryFn: async ({ queryKey: [_key, argsValue] }) => {
       if (argsValue) {
         return await api.findAll(argsValue as FindAllArgs<Q, S>);
       }
       return EMPTY_RESULTS as [M[], Map<string, Model>];
     },
-    enabled: enabled,
+    enabled: !!value,
     ...(options ?? {}),
   });
 };

@@ -1,31 +1,34 @@
 package com.ukonnra.wonderland.springelectrontest.error;
 
+import java.net.URI;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 public final class EntityAlreadyExistsError extends ResponseStatusException {
-  private final String type;
+  private final String entityType;
   private final Map<String, String> values;
 
-  public EntityAlreadyExistsError(String type, Map<String, String> values) {
+  public EntityAlreadyExistsError(String entityType, Map<String, String> values) {
     super(
         HttpStatus.CONFLICT,
         String.format(
             "%s[%s] already exists",
-            type,
+            entityType,
             values.entrySet().stream()
                 .map(e -> String.format("%s = %s", e.getKey(), e.getValue()))
                 .collect(Collectors.joining(", "))));
     this.setTitle("EntityAlreadyExistError");
 
-    this.type = type;
+    this.entityType = entityType;
     this.values = values;
+
+    this.setType(URI.create("urn:wonderland:white-rabbit:errors:entity-already-exists"));
     this.getBody()
         .setProperties(
             Map.of(
-                "type", this.type,
+                "entityType", this.entityType,
                 "values", this.values));
   }
 

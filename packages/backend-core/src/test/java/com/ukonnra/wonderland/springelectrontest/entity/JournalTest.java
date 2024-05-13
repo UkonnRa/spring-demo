@@ -54,7 +54,7 @@ public class JournalTest {
             EntityAlreadyExistsError.class,
             () -> this.journalService.handleCommand(journalCommand));
     Assertions.assertEquals(
-        Map.of("type", Journal.TYPE, "values", Map.of("name", journalCommand.name())),
+        Map.of("entityType", Journal.TYPE, "values", Map.of("name", journalCommand.name())),
         error.getBody().getProperties());
   }
 

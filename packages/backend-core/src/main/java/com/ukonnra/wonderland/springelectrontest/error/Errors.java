@@ -1,6 +1,7 @@
 package com.ukonnra.wonderland.springelectrontest.error;
 
 import jakarta.annotation.Nullable;
+import java.net.URI;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,6 +36,7 @@ public final class Errors extends ResponseStatusException {
     this.setTitle("Errors Found");
 
     this.errors = errors;
+    this.setType(URI.create("urn:wonderland:white-rabbit:errors:errors"));
     this.getBody()
         .setProperty(
             "errors",

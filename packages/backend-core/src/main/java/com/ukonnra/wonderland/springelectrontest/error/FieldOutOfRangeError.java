@@ -3,30 +3,33 @@ package com.ukonnra.wonderland.springelectrontest.error;
 import jakarta.annotation.Nullable;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.constraints.Size;
+import java.net.URI;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 public final class FieldOutOfRangeError extends ResponseStatusException {
-  private final String type;
+  private final String entityType;
   private final String field;
   private final int min;
   private final int max;
 
-  public FieldOutOfRangeError(String type, String field, int min, int max) {
+  public FieldOutOfRangeError(String entityType, String field, int min, int max) {
     super(
         HttpStatus.BAD_REQUEST,
-        String.format("%s[%s] should between %d and %d", type, field, min, max));
+        String.format("%s[%s] should between %d and %d", entityType, field, min, max));
     this.setTitle("FieldOutOfRangeError");
 
-    this.type = type;
+    this.entityType = entityType;
     this.field = field;
     this.min = min;
     this.max = max;
+
+    this.setType(URI.create("urn:wonderland:white-rabbit:errors:fields-out-of-range"));
     this.getBody()
         .setProperties(
             Map.of(
-                "type", this.type,
+                "entityType", this.entityType,
                 "field", this.field,
                 "min", this.min,
                 "max", this.max));
