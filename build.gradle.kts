@@ -1,5 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+import java.io.ByteArrayOutputStream
 
 plugins {
   id("java")
@@ -7,14 +9,14 @@ plugins {
   id("checkstyle")
   id("jacoco")
 
-  id("com.github.spotbugs") version "6.0.18"
+  id("com.github.spotbugs") version "6.0.19"
   id("com.diffplug.spotless") version "6.25.0"
   id("com.github.ben-manes.versions") version "0.51.0"
   id("io.freefair.lombok") version "8.6"
   id("org.sonarqube") version "5.1.0.4882"
 
   id("org.springframework.boot") version "3.3.1" apply false
-  id("io.spring.dependency-management") version "1.1.5"
+  id("io.spring.dependency-management") version "1.1.6"
   id("org.graalvm.buildtools.native") version "0.10.2" apply false
 }
 
@@ -118,6 +120,61 @@ subprojects {
       showStackTraces = true
     }
   }
+
+  tasks.withType<BootJar> {
+    val jlinkTask = tasks.register("jlink") {
+      group = "build"
+      description = "Generate the JRE based on JLink"
+
+      doLast {
+        println("== jlink to create JRE for ${project.name}")
+        val buildDir = layout.buildDirectory.get().asFile
+        val jarLocation = "${project.name}-${version}.jar"
+        exec {
+          workingDir("${buildDir}/libs")
+          commandLine("jar", "xf", jarLocation)
+        }
+
+        val jdepsOutput = ByteArrayOutputStream()
+        exec {
+          workingDir("${buildDir}/libs")
+          standardOutput = jdepsOutput
+
+          val classpath = (file("${workingDir}/BOOT-INF/lib").listFiles() ?: arrayOf()).map { it.toRelativeString(workingDir) }.joinToString(File.pathSeparator)
+
+          commandLine(
+            "jdeps",
+            "--ignore-missing-deps",
+            "--recursive",
+            "--print-module-deps",
+            "--multi-release",
+            java.sourceCompatibility.majorVersion,
+            "--class-path",
+            classpath,
+            jarLocation
+          )
+        }
+
+        file("${buildDir}/libs/app-jre").deleteRecursively()
+
+        val jdeps = jdepsOutput.toString().split(",").filter { !it.startsWith("org.graalvm")  }.joinToString(",")
+        exec {
+          workingDir("${buildDir}/libs")
+          commandLine(
+            "jlink",
+            "--add-modules",
+            jdeps,
+            "--strip-debug",
+            "--no-header-files",
+            "--no-man-pages",
+            "--output",
+            "app-jre",
+          )
+        }
+      }
+    }
+    finalizedBy(jlinkTask)
+  }
 }
 
 tasks.wrapper {
@@ -125,7 +182,7 @@ tasks.wrapper {
 }
 
 // Aggregate test coverages from subprojects to the root.
-// https://github.com/SonarSource/sonar-scanning-examples/blob/master/sonarqube-scanner-gradle/gradle-multimodule-coverage/build.gradle
+// https://github.com/SonarSource/sonar-scanning-examples/blob/master/sonar-scanner-gradle/gradle-multimodule-coverage/build.gradle
 tasks.register<JacocoReport>("codeCoverageReport") {
   subprojects {
     plugins.withType<JacocoPlugin>().configureEach {

@@ -19,9 +19,10 @@ const config: ForgeConfig = {
     extraResource: fs
       .readdirSync(nativeDir)
       .filter((file) => {
-        const isArgsFile = file.startsWith("native-image") && file.endsWith(".args");
-        const isBgvFile = file.endsWith(".bgv");
-        return !isArgsFile && !isBgvFile;
+        return file.startsWith("endpoint-desktop");
+        // const isArgsFile = file.startsWith("native-image") && file.endsWith(".args");
+        // const isBgvFile = file.endsWith(".bgv");
+        // return !isArgsFile && !isBgvFile;
       })
       .map((file) => path.resolve(nativeDir, file)),
   },

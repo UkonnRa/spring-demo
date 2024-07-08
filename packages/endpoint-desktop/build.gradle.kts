@@ -1,3 +1,5 @@
+import java.io.ByteArrayOutputStream
+
 plugins {
   id("org.springframework.boot")
   id("org.graalvm.buildtools.native")
@@ -20,3 +22,5 @@ graalvmNative {
     buildArgs.add("--initialize-at-build-time=org.apache.catalina.connector.RequestFacade,org.apache.catalina.connector.ResponseFacade")
   }
 }
+
+
